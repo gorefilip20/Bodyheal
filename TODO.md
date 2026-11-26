@@ -1,0 +1,6 @@
+# TODO
+
+- [x] **Announcement, navigation, hero, and responsive layout** — Include the reference-matched announcement banner and responsive navigation for Services, About, Team, Contact, and Book Now. Include a prominent hero section with clear booking calls to action. Replicate the supplied archive's aesthetic, color palette, typography, spacing, and section structure, and ensure the mobile layout works smoothly.
+- [x] **Service offerings and booking interactions** — Include service cards for Bodywork Massage ($150+, 60+ min), Buccal Massage ($150, 55 min), and Gentle Touch (Oncology Massage) ($140, 60 min), with descriptions, imagery, pricing, and durations. Make the Book Now buttons functional and include an interactive appointment inquiry modal or form accessible from booking calls to action.
+- [x] **Business information and footer branding** — Include business location and contact information for 9393 N 90th St #108B, Scottsdale, AZ 85258, with the reference business hours. Include a responsive footer with BODYHEALING branding and no third-party platform watermark. Use BODYHEALING consistently throughout the project.
+- [ ] **GitHub source delivery** — Commit and push the completed, clean, organized source code directly to the `main` branch of `https://github.com/gorefilip20/Bodyheal`, without rewriting existing history.

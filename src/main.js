@@ -1,0 +1,227 @@
+const services = [
+  {
+    name: "Bodywork Massage",
+    price: "$150+",
+    duration: "60+ min",
+    image: "/images/0a9894705789be69895dcabca701a907.png",
+    alt: "A therapist providing a relaxing back massage",
+    description:
+      "A fully customized massage experience tailored to your body’s unique needs. Whether you’re seeking deep relief or total relaxation, your session may include a combination of deep tissue, trigger point release, myofascial release, Swedish techniques, and reflexology. Ideal for easing chronic pain, improving mobility, reducing stress, and restoring overall balance. Your therapist will determine the best approach for you before the session begins.",
+  },
+  {
+    name: "Buccal Massage",
+    price: "$150",
+    duration: "55 min",
+    image: "/images/684dcb2494372224139ef0ca73c037e8.jpg",
+    alt: "A gentle facial massage focused on the jaw and cheeks",
+    description:
+      "An advanced facial massage technique performed both externally and inside the mouth to target deeper facial muscles. This method relieves jaw tension, boosts circulation, and naturally lifts and sculpts the face. Known for its ability to define cheekbones, reduce puffiness, and enhance skin elasticity, buccal massage is a favorite among celebrities for its immediate ‘facial workout’ effect. Ideal for those seeking non-invasive rejuvenation, improved lymphatic drainage, and a radiant, contoured glow.",
+  },
+  {
+    name: "Gentle Touch",
+    subtitle: "Oncology Massage",
+    price: "$140",
+    duration: "60 min",
+    image: "/images/db9d2e624bafa4b2fa3c5bd57472a053.png",
+    alt: "Gentle massage for a client resting comfortably",
+    description:
+      "A specialized massage for individuals currently undergoing or recovering from cancer treatment. Each session is tailored with deep sensitivity to your needs, energy levels, medical history, treatment side effects, and emotional well-being. Touch is gentle, intentional, and always respectful of your boundaries. The goal is not pressure, but presence—a space for relaxation, comfort, and connection.",
+  },
+];
+
+const hours = [
+  ["Monday", "10 am – 6:30 pm"],
+  ["Tuesday", "10 am – 6:30 pm"],
+  ["Wednesday", "9:30 am – 6 pm"],
+  ["Thursday", "9:30 am – 6 pm"],
+  ["Friday", "10 am – 6:30 pm"],
+  ["Saturday", "9:30 am – 6 pm"],
+  ["Sunday", "10 am – 6:30 pm"],
+];
+
+const brand = `
+  <svg class="brand-mark" viewBox="0 0 38 38" aria-hidden="true" focusable="false">
+    <path d="M19 3c-2.2 8.2-6.1 12.2-12.8 13.4 6.7 1.2 10.6 5.2 12.8 13.4 2.2-8.2 6.1-12.2 12.8-13.4C25.1 15.2 21.2 11.2 19 3Z" fill="currentColor"/>
+    <path d="M19 21c-1.1 4.7-3.4 7.8-7.2 9.3 3.8.7 6.1 2.5 7.2 5.7 1.1-3.2 3.4-5 7.2-5.7-3.8-1.5-6.1-4.6-7.2-9.3Z" fill="currentColor" opacity=".48"/>
+  </svg>`;
+
+const serviceCards = services
+  .map(
+    (service, index) => `
+      <article class="service-card" data-reveal>
+        <div class="service-photo-wrap">
+          <img class="service-photo" src="${service.image}" alt="${service.alt}" loading="lazy" />
+          <span class="service-number">0${index + 1}</span>
+        </div>
+        <div class="service-card-content">
+          <p class="eyebrow service-category">${service.subtitle || "Personalized bodywork"}</p>
+          <h3>${service.name}</h3>
+          ${service.subtitle ? `<p class="service-subtitle">${service.subtitle}</p>` : ""}
+          <p class="service-description">${service.description}</p>
+          ${index === 2 ? `<div class="benefits"><span>Reduced stress</span><span>Restful sleep</span><span>Gentle support</span></div>` : ""}
+          <div class="service-bottom">
+            <div class="service-meta"><span class="service-price">${service.price}</span><span class="meta-divider" aria-hidden="true"></span><span>${service.duration}</span></div>
+            <button class="text-link book-trigger" type="button" data-service="${service.name}">Book this service <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </article>`
+  )
+  .join("");
+
+const app = document.querySelector("#app");
+app.innerHTML = `
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announcement" role="region" aria-label="Booking information">
+    <span class="announcement-dot" aria-hidden="true"></span>
+    <p>Buy now, pay later is available in person <span class="announcement-detail">for bookings from $50–$4,000.</span></p>
+    <a href="#services" class="announcement-link">Explore treatments <span aria-hidden="true">↗</span></a>
+  </div>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="BODYHEALING home">${brand}<span>BODY<span class="brand-thin">HEALING</span></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation"><span></span><span></span></button>
+    <nav class="primary-navigation" id="primary-navigation" aria-label="Main navigation">
+      <a href="#services">Services</a>
+      <a href="#about">About</a>
+      <a href="#team">Team</a>
+      <a href="#contact">Contact</a>
+      <button class="button button-dark nav-book book-trigger" type="button">Book Now <span aria-hidden="true">↗</span></button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <div class="hero-photo" role="img" aria-label="A quiet, restorative massage treatment"></div>
+      <div class="hero-shade"></div>
+      <div class="hero-inner">
+        <p class="eyebrow hero-kicker"><span class="hero-kicker-line"></span>SCOTTSDALE, ARIZONA</p>
+        <h1 id="hero-title">Come back<br /><em>to yourself.</em></h1>
+        <p class="hero-copy">Care that meets you where you are. Thoughtful massage and bodywork, shaped around what your body needs today.</p>
+        <div class="hero-actions"><button class="button button-light book-trigger" type="button">Find your treatment <span aria-hidden="true">↗</span></button><a class="hero-secondary" href="#services">Discover our services <span aria-hidden="true">↓</span></a></div>
+      </div>
+      <div class="hero-stamp" aria-hidden="true"><span>BODYWORK</span><span>·</span><span>WELLNESS</span><span>·</span><span>SCOTTSDALE</span></div>
+      <a class="hero-scroll" href="#about"><span>SCROLL TO EXPLORE</span><i></i></a>
+    </section>
+
+    <section class="intro section-pad" id="about">
+      <div class="intro-side" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>BODYWORK, WITH INTENTION</p><div class="intro-image-frame"><img src="/images/e226f59ba341cd01168c64095a59244f.jpg" alt="A calm massage session in a light-filled treatment room" loading="lazy" /><span class="image-note">A softer place to land.</span></div></div>
+      <div class="intro-copy" data-reveal><p class="section-index">01 <span>—</span> A little about us</p><h2>Make room for<br /><em>feeling better.</em></h2><p>Every body arrives with a different story. We take the time to listen, then tailor each session with care—whether you’re looking for relief, a moment to exhale, or a gentler kind of support.</p><p>Our work is grounded in attentive touch, a safe and welcoming space, and respect for what feels right for you.</p><a class="text-link" href="#team">Meet your care team <span aria-hidden="true">↗</span></a></div>
+      <div class="intro-asterisk" aria-hidden="true">✳</div>
+    </section>
+
+    <section class="services-section section-pad" id="services">
+      <div class="section-heading" data-reveal><div><p class="eyebrow"><span class="eyebrow-dot"></span>CARE FOR EVERY SEASON</p><h2>Find your kind<br />of <em>rest.</em></h2></div><p class="section-heading-note">A few ways to feel more at home in your body. Each session is personalized to you.</p></div>
+      <div class="service-grid">${serviceCards}</div>
+      <div class="services-end" data-reveal><span>YOUR TIME. YOUR BODY. YOUR PACE.</span><button class="button button-outline book-trigger" type="button">Let’s find your fit <span aria-hidden="true">↗</span></button></div>
+    </section>
+
+    <section class="gentle-feature" aria-labelledby="gentle-title">
+      <div class="gentle-image"><img src="/images/db9d2e624bafa4b2fa3c5bd57472a053.png" alt="A client resting as a practitioner gives a gentle face and head massage" loading="lazy" /></div>
+      <div class="gentle-content" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>CARE THAT LISTENS</p><h2 id="gentle-title">A gentle touch.<br /><em>A little more ease.</em></h2><p>For anyone navigating cancer treatment or recovery, the smallest moments of comfort can mean a lot. Oncology massage is adapted with sensitivity to your needs, energy, and boundaries.</p><p>Sessions begin with a thoughtful intake. Touch is gentle and intentional, with your comfort at the center of every moment.</p><button class="button button-light book-trigger" type="button" data-service="Gentle Touch">Learn about Gentle Touch <span aria-hidden="true">↗</span></button></div>
+    </section>
+
+    <section class="team-section section-pad" id="team">
+      <div class="team-image" data-reveal><img src="/images/0a9894705789be69895dcabca701a907.png" alt="Hands providing attentive therapeutic massage" loading="lazy" /><span class="team-image-label">A calm, considered approach</span></div>
+      <div class="team-copy" data-reveal><p class="section-index">02 <span>—</span> Meet your team</p><p class="eyebrow"><span class="eyebrow-dot"></span>THOUGHTFUL HANDS, ALWAYS</p><h2>Care that<br /><em>sees the whole you.</em></h2><p>Your therapist brings a thoughtful, individualized approach to every appointment. With specialized certification in oncology massage, they take time to understand your comfort, your history, and what support looks like for you.</p><p>There is no one-size-fits-all session here—only steady, compassionate care at your pace.</p><a class="text-link" href="tel:+16023665298">Let’s talk about what you need <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <div class="contact-top" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>YOUR SPACE TO RESTORE</p><h2>We’ll meet you<br /><em>where you are.</em></h2><button class="button button-dark book-trigger" type="button">Book a session <span aria-hidden="true">↗</span></button></div>
+      <div class="contact-lower">
+        <div class="contact-location" data-reveal><p class="eyebrow">COME FIND US</p><a class="location-address" href="https://www.google.com/maps/search/?api=1&amp;query=9393%20N%2090th%20St%20%23108B%2C%20Scottsdale%2C%20AZ%2C%2085258" target="_blank" rel="noopener noreferrer">9393 N 90th St #108B<br />Scottsdale, AZ 85258 <span aria-hidden="true">↗</span></a><a class="contact-phone" href="tel:+16023665298">(602) 366-5298</a><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=9393%20N%2090th%20St%20%23108B%2C%20Scottsdale%2C%20AZ%2C%2085258" target="_blank" rel="noopener noreferrer">Get directions <span aria-hidden="true">↗</span></a><a class="instagram-link" href="https://www.instagram.com/bodywork_massage_az" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true">↗</span></a></div>
+        <div class="hours-panel" data-reveal><p class="eyebrow">HOURS AND LOCATION</p><div class="hours-list">${hours.map(([day, value]) => `<div class="hours-row"><span>${day}</span><span>${value}</span></div>`).join("")}</div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="#home">Back to top ↑</a></div></footer>
+
+  <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="dialog-title">
+    <button class="dialog-close" type="button" aria-label="Close booking form">×</button>
+    <div class="dialog-inner">
+      <p class="eyebrow"><span class="eyebrow-dot"></span>LET’S MAKE SOME SPACE FOR YOU</p>
+      <h2 id="dialog-title">Start with<br /><em>a conversation.</em></h2>
+      <p class="dialog-intro">Tell us a little about what you’re looking for. We’ll help you find a session that feels right.</p>
+      <form id="booking-form">
+        <label for="service-choice">Service of interest</label>
+        <select id="service-choice" name="service" required><option value="">Choose a service</option>${services.map((service) => `<option value="${service.name}">${service.name}${service.subtitle ? ` (${service.subtitle})` : ""} — ${service.price}, ${service.duration}</option>`).join("")}<option value="Not sure yet">I’m not sure yet</option></select>
+        <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
+        <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
+        <button class="button button-dark form-submit" type="submit">Continue to send your request <span aria-hidden="true">↗</span></button>
+        <p class="form-disclaimer">Your message will open in your text messaging app, addressed to BODYHEALING. Tap send there to complete your inquiry.</p>
+        <p class="form-feedback" id="form-feedback" aria-live="polite" role="status"></p>
+      </form>
+      <a class="dialog-call" href="tel:+16023665298">Prefer to call? (602) 366-5298</a>
+    </div>
+  </dialog>
+`;
+
+document.querySelector("#year").textContent = new Date().getFullYear();
+
+const dialog = document.querySelector("#booking-dialog");
+const serviceChoice = document.querySelector("#service-choice");
+const openers = document.querySelectorAll(".book-trigger");
+for (const opener of openers) {
+  opener.addEventListener("click", () => {
+    const desired = opener.dataset.service;
+    if (desired) serviceChoice.value = desired;
+    document.querySelector("#form-feedback").textContent = "";
+    dialog.showModal();
+  });
+}
+
+document.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+dialog.addEventListener("click", (event) => {
+  if (event.target === dialog) dialog.close();
+});
+dialog.addEventListener("close", () => {
+  document.querySelector("#form-feedback").textContent = "";
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && dialog.open) dialog.close();
+});
+
+document.querySelector("#booking-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const message = [
+    `Hello BODYHEALING, I’d like to ask about an appointment.`,
+    `Service: ${form.get("service")}`,
+    `Name: ${form.get("name")}`,
+    `Phone: ${form.get("phone")}`,
+    form.get("note") ? `Note: ${form.get("note")}` : "",
+  ].filter(Boolean).join("\n");
+  const smsUrl = `sms:+16023665298?&body=${encodeURIComponent(message)}`;
+  const feedback = document.querySelector("#form-feedback");
+  feedback.textContent = "Your appointment request is ready in your messaging app. Tap send there to complete it.";
+  window.location.href = smsUrl;
+});
+
+const menuToggle = document.querySelector(".menu-toggle");
+const nav = document.querySelector(".primary-navigation");
+const closeMenu = () => {
+  nav.classList.remove("is-open");
+  menuToggle.setAttribute("aria-expanded", "false");
+  menuToggle.setAttribute("aria-label", "Open navigation");
+};
+menuToggle.addEventListener("click", () => {
+  const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
+  menuToggle.setAttribute("aria-expanded", String(!isOpen));
+  menuToggle.setAttribute("aria-label", isOpen ? "Open navigation" : "Close navigation");
+  nav.classList.toggle("is-open", !isOpen);
+});
+nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+nav.querySelector(".book-trigger").addEventListener("click", closeMenu);
+
+document.querySelectorAll("[data-reveal]").forEach((element) => {
+  if (!("IntersectionObserver" in window)) {
+    element.classList.add("is-visible");
+    return;
+  }
+  const observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      element.classList.add("is-visible");
+      observer.disconnect();
+    }
+  }, { threshold: 0.14 });
+  observer.observe(element);
+});
