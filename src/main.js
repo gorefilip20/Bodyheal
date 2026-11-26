@@ -39,6 +39,13 @@ const hours = [
   ["Sunday", "10 am – 6:30 pm"],
 ];
 
+const intensives = [
+  { name: "1 Day Private Intensive", price: "$5,000", image: "/images/0a9894705789be69895dcabca701a907.png", alt: "Private therapeutic bodywork in a calm treatment setting", imageClass: "intensive-photo-one" },
+  { name: "Half Day Private Intensive", price: "$3,500", image: "/images/684dcb2494372224139ef0ca73c037e8.jpg", alt: "A focused restorative facial massage session", imageClass: "intensive-photo-two" },
+  { name: "Mini Intensive", price: "$1,750", image: "/images/e226f59ba341cd01168c64095a59244f.jpg", alt: "A quiet hands-on massage session", imageClass: "intensive-photo-three" },
+  { name: "5 Day On-Site Intensive", price: "$25,000", image: "/images/db9d2e624bafa4b2fa3c5bd57472a053.png", alt: "A personalized one-to-one massage experience", imageClass: "intensive-photo-four" },
+];
+
 const brand = `
   <svg class="brand-mark" viewBox="0 0 38 38" aria-hidden="true" focusable="false">
     <path d="M19 3c-2.2 8.2-6.1 12.2-12.8 13.4 6.7 1.2 10.6 5.2 12.8 13.4 2.2-8.2 6.1-12.2 12.8-13.4C25.1 15.2 21.2 11.2 19 3Z" fill="currentColor"/>
@@ -68,6 +75,23 @@ const serviceCards = services
   )
   .join("");
 
+const intensiveCards = intensives
+  .map((intensive, index) => `
+    <article class="intensive-card" data-reveal>
+      <div class="intensive-photo-wrap">
+        <img class="intensive-photo ${intensive.imageClass}" src="${intensive.image}" alt="${intensive.alt}" loading="lazy" />
+        <span class="intensive-number">0${index + 1}</span>
+      </div>
+      <div class="intensive-card-content">
+        <p class="eyebrow intensive-category">PRIVATE BODYWORK</p>
+        <h3>${intensive.name}</h3>
+        <p class="intensive-card-copy">A bespoke massage intensive shaped around your needs, in a setting that works for you.</p>
+        <p class="intensive-price">${intensive.price}</p>
+        <button class="button button-dark reserve-intensive book-trigger" type="button" data-intensive="${intensive.name}" data-price="${intensive.price}">Reserve Your Intensive</button>
+      </div>
+    </article>`)
+  .join("");
+
 const app = document.querySelector("#app");
 app.innerHTML = `
   <a class="skip-link" href="#main">Skip to content</a>
@@ -81,6 +105,7 @@ app.innerHTML = `
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation"><span></span><span></span></button>
     <nav class="primary-navigation" id="primary-navigation" aria-label="Main navigation">
       <a href="#services">Services</a>
+      <a href="#intensives">Intensives</a>
       <a href="#about">About</a>
       <a href="#team">Team</a>
       <a href="#contact">Contact</a>
@@ -114,6 +139,19 @@ app.innerHTML = `
       <div class="services-end" data-reveal><span>YOUR TIME. YOUR BODY. YOUR PACE.</span><button class="button button-outline book-trigger" type="button">Let’s find your fit <span aria-hidden="true">↗</span></button></div>
     </section>
 
+    <section class="intensives-section" id="intensives" aria-labelledby="intensives-title">
+      <div class="intensives-heading" data-reveal>
+        <div class="intensives-heading-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span>PRIVATE &amp; GLOBAL TRAVEL</p>
+          <h2 id="intensives-title">Private &amp; Global<br /><em>Travel Intensives</em></h2>
+          <p class="intensives-intro">Dedicated, extended bodywork experiences designed around you—available in Scottsdale or wherever you need us.</p>
+        </div>
+        <div class="worldwide-badge"><span class="worldwide-icon" aria-hidden="true">◎</span><div><strong>Worldwide Travel Available</strong><p>I travel internationally to any country to deliver private and on-site massage intensives.</p></div></div>
+      </div>
+      <p class="travel-note" data-reveal>International travel logistics and on-site accommodations are coordinated upon reservation.</p>
+      <div class="intensive-grid">${intensiveCards}</div>
+    </section>
+
     <section class="gentle-feature" aria-labelledby="gentle-title">
       <div class="gentle-image"><img src="/images/db9d2e624bafa4b2fa3c5bd57472a053.png" alt="A client resting as a practitioner gives a gentle face and head massage" loading="lazy" /></div>
       <div class="gentle-content" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>CARE THAT LISTENS</p><h2 id="gentle-title">A gentle touch.<br /><em>A little more ease.</em></h2><p>For anyone navigating cancer treatment or recovery, the smallest moments of comfort can mean a lot. Oncology massage is adapted with sensitivity to your needs, energy, and boundaries.</p><p>Sessions begin with a thoughtful intake. Touch is gentle and intentional, with your comfort at the center of every moment.</p><button class="button button-light book-trigger" type="button" data-service="Gentle Touch">Learn about Gentle Touch <span aria-hidden="true">↗</span></button></div>
@@ -133,7 +171,7 @@ app.innerHTML = `
     </section>
   </main>
 
-  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="#home">Back to top ↑</a></div></footer>
+  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><nav class="footer-navigation" aria-label="Footer navigation"><a href="#services">Services</a><a href="#intensives">Intensives</a><a href="#about">About</a><a href="#team">Team</a><a href="#contact">Contact</a></nav><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="#home">Back to top ↑</a></div></footer>
 
   <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="dialog-title">
     <button class="dialog-close" type="button" aria-label="Close booking form">×</button>
@@ -143,7 +181,14 @@ app.innerHTML = `
       <p class="dialog-intro">Tell us a little about what you’re looking for. We’ll help you find a session that feels right.</p>
       <form id="booking-form">
         <label for="service-choice">Service of interest</label>
-        <select id="service-choice" name="service" required><option value="">Choose a service</option>${services.map((service) => `<option value="${service.name}">${service.name}${service.subtitle ? ` (${service.subtitle})` : ""} — ${service.price}, ${service.duration}</option>`).join("")}<option value="Not sure yet">I’m not sure yet</option></select>
+        <select id="service-choice" name="service" required><option value="">Choose a service</option><optgroup label="Massage &amp; bodywork">${services.map((service) => `<option value="${service.name}" data-kind="service">${service.name}${service.subtitle ? ` (${service.subtitle})` : ""} — ${service.price}, ${service.duration}</option>`).join("")}</optgroup><optgroup label="Private &amp; global travel intensives">${intensives.map((intensive) => `<option value="${intensive.name}" data-kind="intensive" data-price="${intensive.price}">${intensive.name} — ${intensive.price}</option>`).join("")}</optgroup><option value="Not sure yet" data-kind="service">I’m not sure yet</option></select>
+        <div class="intensive-travel-fields" id="intensive-travel-fields" hidden>
+          <p class="travel-fields-heading">A little about your intensive</p>
+          <label for="destination">Destination City &amp; Country</label>
+          <input id="destination" name="destination" type="text" autocomplete="off" placeholder="City, Country" disabled />
+          <label for="travel-dates">Preferred Travel Dates</label>
+          <input id="travel-dates" name="travelDates" type="text" autocomplete="off" placeholder="e.g. June 10–14, 2027" disabled />
+        </div>
         <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
         <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
         <button class="button button-dark form-submit" type="submit">Continue to send your request <span aria-hidden="true">↗</span></button>
@@ -159,11 +204,24 @@ document.querySelector("#year").textContent = new Date().getFullYear();
 
 const dialog = document.querySelector("#booking-dialog");
 const serviceChoice = document.querySelector("#service-choice");
+const travelFields = document.querySelector("#intensive-travel-fields");
+const destinationField = document.querySelector("#destination");
+const travelDatesField = document.querySelector("#travel-dates");
+const syncIntensiveFields = () => {
+  const isIntensive = serviceChoice.selectedOptions[0]?.dataset.kind === "intensive";
+  travelFields.hidden = !isIntensive;
+  destinationField.disabled = !isIntensive;
+  travelDatesField.disabled = !isIntensive;
+  destinationField.required = isIntensive;
+  travelDatesField.required = isIntensive;
+};
+serviceChoice.addEventListener("change", syncIntensiveFields);
 const openers = document.querySelectorAll(".book-trigger");
 for (const opener of openers) {
   opener.addEventListener("click", () => {
-    const desired = opener.dataset.service;
+    const desired = opener.dataset.intensive || opener.dataset.service;
     if (desired) serviceChoice.value = desired;
+    syncIntensiveFields();
     document.querySelector("#form-feedback").textContent = "";
     dialog.showModal();
   });
@@ -183,9 +241,14 @@ document.addEventListener("keydown", (event) => {
 document.querySelector("#booking-form").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
+  const selectedOption = serviceChoice.selectedOptions[0];
+  const selectedPrice = selectedOption?.dataset.price || "";
   const message = [
     `Hello BODYHEALING, I’d like to ask about an appointment.`,
-    `Service: ${form.get("service")}`,
+    selectedPrice ? `Intensive package: ${form.get("service")}` : `Service: ${form.get("service")}`,
+    selectedPrice ? `Price: ${selectedPrice}` : "",
+    form.get("destination") ? `Destination City & Country: ${form.get("destination")}` : "",
+    form.get("travelDates") ? `Preferred Travel Dates: ${form.get("travelDates")}` : "",
     `Name: ${form.get("name")}`,
     `Phone: ${form.get("phone")}`,
     form.get("note") ? `Note: ${form.get("note")}` : "",
@@ -211,6 +274,7 @@ menuToggle.addEventListener("click", () => {
 });
 nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
 nav.querySelector(".book-trigger").addEventListener("click", closeMenu);
+document.querySelectorAll(".footer-navigation a").forEach((link) => link.addEventListener("click", closeMenu));
 
 document.querySelectorAll("[data-reveal]").forEach((element) => {
   if (!("IntersectionObserver" in window)) {
