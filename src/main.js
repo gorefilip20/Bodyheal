@@ -57,6 +57,7 @@ const sessionVideos = [
   { title: "Deep Structural Bodywork", treatment: "Myofascial release", src: "/videos/session-1.mp4", poster: "/videos/poster-session-1.jpg", alt: "Practitioner using steady hands-on pressure during a full-body session", service: "Bodywork Massage" },
   { title: "Fire Cupping & Myofascial Release", treatment: "Cupping and tissue work", src: "/videos/session-2.mp4", poster: "/videos/poster-session-2.jpg", alt: "Practitioner applying glass cups during a bodywork session", service: "Bodywork Massage" },
   { title: "Restorative Recovery Session", treatment: "Personalized restorative care", src: "/videos/session-3.mp4", poster: "/videos/poster-session-3.jpg", alt: "Practitioner providing a restorative massage session", service: "Bodywork Massage" },
+  { title: "Restorative Face & Neck Massage", treatment: "Gentle head and neck work", src: "/videos/session-4.mp4", poster: "/videos/poster-session-4.jpg", alt: "A practitioner gently massaging a reclining client’s face and neck", service: "Bodywork Massage" },
 ];
 
 const sessionVideoCards = sessionVideos.map((video, index) => `
