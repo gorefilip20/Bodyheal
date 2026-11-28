@@ -253,6 +253,10 @@ async function statusData(ref) {
   const row = rows[0];
   return { bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), destination: row.destination, travelDates: row.travel_dates, currency: "USDT", createdAt: row.created_at, updatedAt: row.updated_at, txid: row.txid, proofSubmitted: Boolean(row.proof_name) };
 }
+app.get("/api/bookings/:ref", async (req, res, next) => {
+  try { if (pool) await ensureSchema(); const data = await statusData(cleanText(req.params.ref, 16).toUpperCase()); return data ? res.json(data) : res.status(404).json({ error: "Booking reference not found." }); }
+  catch (error) { next(error); }
+});
 app.get("/api/bookings/:ref/status", async (req, res, next) => {
   try { if (pool) await ensureSchema(); const data = await statusData(cleanText(req.params.ref, 16).toUpperCase()); return data ? res.json(data) : res.status(404).json({ error: "Booking reference not found." }); }
   catch (error) { next(error); }

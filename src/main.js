@@ -116,6 +116,7 @@ app.innerHTML = `
       <a href="#about">About</a>
       <a href="#team">Team</a>
       <a href="#contact">Contact</a>
+      <a href="#booking-status" class="booking-status-nav">Check Booking Status</a>
       <button class="button button-dark nav-book book-trigger" type="button">Book Now <span aria-hidden="true"></span></button>
     </nav>
   </header>
@@ -178,9 +179,15 @@ app.innerHTML = `
         <div class="hours-panel" data-reveal><p class="eyebrow">HOURS AND LOCATION</p><div class="hours-list">${hours.map(([day, value]) => `<div class="hours-row"><span>${day}</span><span>${value}</span></div>`).join("")}</div></div>
       </div>
     </section>
+    <section class="booking-status-section section-pad" id="booking-status" aria-labelledby="booking-status-title">
+      <div class="booking-status-grid">
+        <article class="active-booking-receipt" id="active-booking-receipt" hidden></article>
+        <div class="booking-status-lookup-panel"><p class="eyebrow">BOOKING SUPPORT</p><h2 id="booking-status-title">Check booking <em>status</em></h2><p>Enter your BODYHEALING Booking ID to see the latest payment review and appointment details.</p><form class="booking-status-lookup"><label for="persistent-booking-id">Booking ID</label><input id="persistent-booking-id" name="bookingRef" required placeholder="BH-A1B2C3D4" autocomplete="off"><button class="button button-dark" type="submit">Check Booking Status</button></form><p id="persistent-booking-status" class="booking-lookup-result" aria-live="polite"></p></div>
+      </div>
+    </section>
   </main>
 
-  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><nav class="footer-navigation" aria-label="Footer navigation"><a href="#services">Services</a><a href="#intensives">Intensives</a><a href="#about">About</a><a href="#team">Team</a><a href="#contact">Contact</a></nav><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="/admin" class="footer-admin-link">Admin</a><a href="#home">Back to top ↑</a></div></footer>
+  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><nav class="footer-navigation" aria-label="Footer navigation"><a href="#services">Services</a><a href="#intensives">Intensives</a><a href="#about">About</a><a href="#team">Team</a><a href="#contact">Contact</a><a href="#booking-status">Check Booking Status</a></nav><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="/admin" class="footer-admin-link">Admin</a><a href="#home">Back to top ↑</a></div></footer>
 
   <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="dialog-title">
     <button class="dialog-close" type="button" aria-label="Close booking form">×</button>
@@ -224,7 +231,7 @@ app.innerHTML = `
         </form>
         <div id="payment-status" class="payment-status" hidden aria-live="polite"></div>
         <p id="crypto-feedback" class="form-feedback" aria-live="polite" role="status"></p>
-        <div class="status-lookup"><h4>Check status by booking ID</h4><form id="booking-lookup-form"><label for="lookup-reference">Booking reference</label><input id="lookup-reference" required placeholder="BH-12345678" /><button class="button button-outline" type="submit">Check Status</button></form><p id="lookup-result" aria-live="polite"></p></div>
+        <div class="status-lookup"><h4>Check status by booking ID</h4><form id="booking-lookup-form" class="booking-status-lookup"><label for="lookup-reference">Booking reference</label><input id="lookup-reference" name="bookingRef" required placeholder="BH-A1B2C3D4" /><button class="button button-outline" type="submit">Check Status</button></form><p id="lookup-result" class="booking-lookup-result" aria-live="polite"></p></div>
       </section>
       <a class="dialog-call" href="tel:+16023665298">Prefer to call? (602) 366-5298</a>
     </div>

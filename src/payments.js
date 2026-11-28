@@ -2,9 +2,10 @@ import QRCode from "qrcode";
 
 const WALLET = "0xF071f5f6D703dF16cE3715A912ef08791b783CDe";
 const SERVICE_AMOUNTS = { "Bodywork Massage": 150, "Buccal Massage": 150, "Gentle Touch": 140 };
+const ACTIVE_BOOKING_KEY = "bodyhealing.activeBookingRef";
 const escapeText = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 const statusLabels = { payment_pending: "Payment details ready — submit proof to save your booking", waiting_confirmation: "Waiting for Confirmation", successful: "Payment Successful — Booking Confirmed", needs_review: "Needs Review — Please contact BODYHEALING" };
-const money = (amount) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(amount);
+const money = (amount) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(Number(amount) || 0);
 const client = async (url, options = {}) => {
   const response = await fetch(url, { credentials: "same-origin", signal: AbortSignal.timeout(15000), ...options });
   const data = await response.json().catch(() => ({}));
@@ -21,20 +22,58 @@ export function setupCryptoPayment() {
   const photoInput = document.querySelector("#payment-screenshot");
   const preview = document.querySelector("#payment-preview");
   const start = document.querySelector("#crypto-pay-start");
+  const localReceipt = document.querySelector("#active-booking-receipt");
   let booking = null;
   let pollTimer = null;
+  let activeRef = null;
 
+  const remember = (ref) => {
+    if (!ref) return;
+    activeRef = ref;
+    try { localStorage.setItem(ACTIVE_BOOKING_KEY, ref); } catch { /* Storage may be unavailable; this session still polls. */ }
+    document.querySelectorAll('input[name="bookingRef"]').forEach((input) => { input.value = ref; });
+  };
+  const receiptMarkup = (data) => `<p class="payment-status-badge ${data.status === "successful" ? "is-success" : data.status === "needs_review" ? "is-review" : "is-waiting"}">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p><div class="booking-id-banner"><div><span>Official Booking ID</span><strong>${escapeText(data.bookingRef)}</strong></div><button class="button button-outline copy-booking-id" type="button" data-booking-id="${escapeText(data.bookingRef)}">Copy ID</button></div><dl class="payment-status-details"><div><dt>Service / intensive</dt><dd>${escapeText(data.service)}</dd></div><div><dt>Amount</dt><dd>${money(data.amount)} USD / ${money(data.amount)} USDT</dd></div>${data.destination ? `<div><dt>Destination</dt><dd>${escapeText(data.destination)}</dd></div>` : ""}${data.travelDates ? `<div><dt>Travel dates</dt><dd>${escapeText(data.travelDates)}</dd></div>` : ""}<div><dt>Last updated</dt><dd>${escapeText(new Date(data.updatedAt || data.createdAt || Date.now()).toLocaleString())}</dd></div></dl>`;
   const showStatus = (data) => {
+    if (data.bookingRef) remember(data.bookingRef);
+    const html = data.bookingRef ? receiptMarkup(data) : `<p class="payment-status-badge is-waiting">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p>`;
     const statusBox = document.querySelector("#payment-status");
-    statusBox.innerHTML = `<p class="payment-status-badge ${data.status === "successful" ? "is-success" : data.status === "needs_review" ? "is-review" : "is-waiting"}">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p>${data.bookingRef ? `<div class="booking-id-banner"><div><span>Booking ID</span><strong>${escapeText(data.bookingRef)}</strong></div><button class="button button-outline copy-booking-id" type="button" data-booking-id="${escapeText(data.bookingRef)}">Copy ID</button></div>` : ""}<dl class="payment-status-details"><div><dt>Package</dt><dd>${escapeText(data.service)}</dd></div><div><dt>Amount</dt><dd>${money(data.amount)} USD / ${money(data.amount)} USDT</dd></div>${data.destination ? `<div><dt>Destination</dt><dd>${escapeText(data.destination)}</dd></div>` : ""}${data.travelDates ? `<div><dt>Travel dates</dt><dd>${escapeText(data.travelDates)}</dd></div>` : ""}${data.updatedAt || data.createdAt ? `<div><dt>Updated</dt><dd>${escapeText(new Date(data.updatedAt || data.createdAt).toLocaleString())}</dd></div>` : ""}<div><dt>Submitted proof</dt><dd>${escapeText(data.txid ? `TXID ${data.txid.slice(0, 14)}…${data.txid.slice(-8)}` : data.proofSubmitted ? "Payment screenshot received" : "Not submitted yet")}</dd></div></dl>`;
+    statusBox.innerHTML = html;
     statusBox.hidden = false;
-    statusBox.querySelector(".copy-booking-id")?.addEventListener("click", async (event) => { try { await navigator.clipboard.writeText(data.bookingRef); event.currentTarget.textContent = "Copied"; } catch { feedback.textContent = "Copy unavailable; select the Booking ID to copy it manually."; } });
+    if (localReceipt && data.bookingRef) {
+      localReceipt.innerHTML = `<div class="receipt-heading"><p class="eyebrow">YOUR BOOKING</p><h2>Booking <em>status</em></h2></div>${receiptMarkup(data)}`;
+      localReceipt.hidden = false;
+    }
+    for (const button of document.querySelectorAll(".copy-booking-id")) {
+      button.onclick = async (event) => { try { await navigator.clipboard.writeText(button.dataset.bookingId); button.textContent = "Copied"; } catch { (statusBox || localReceipt).querySelector(".booking-id-banner strong")?.focus?.(); } };
+    }
     proofForm.hidden = data.status !== "payment_pending" && data.status !== "needs_review";
     if (data.status === "successful" || data.status === "needs_review") clearInterval(pollTimer);
   };
-  const pollStatus = async (ref) => {
-    try { const data = await client(`/api/bookings/${encodeURIComponent(ref)}/status`); showStatus(data); }
-    catch (error) { feedback.textContent = `We couldn't refresh your booking status just now. ${error.message}`; }
+  const pollStatus = async (ref, quiet = false) => {
+    try {
+      const data = await client(`/api/bookings/${encodeURIComponent(ref)}`);
+      showStatus(data);
+      return data;
+    } catch (error) {
+      if (!quiet) feedback.textContent = `We couldn't refresh your booking status just now. ${error.message}`;
+      return null;
+    }
+  };
+  const startPolling = (ref) => {
+    clearInterval(pollTimer);
+    if (ref) pollTimer = setInterval(() => pollStatus(ref, true), 5000);
+  };
+  const lookup = async (ref, resultBox) => {
+    resultBox.textContent = "Checking status…";
+    try {
+      const result = await client(`/api/bookings/${encodeURIComponent(ref)}`);
+      remember(result.bookingRef);
+      showStatus(result);
+      resultBox.textContent = `${statusLabels[result.status] || result.status} · ${result.bookingRef}`;
+      if (result.status === "waiting_confirmation") startPolling(result.bookingRef);
+      return result;
+    } catch (error) { resultBox.textContent = error.message; return null; }
   };
 
   start?.addEventListener("click", async () => {
@@ -54,8 +93,7 @@ export function setupCryptoPayment() {
     document.querySelector("#wallet-amount").textContent = `${money(amount)} USD / ${money(amount)} USDT`;
     document.querySelector("#wallet-address").textContent = WALLET;
     document.querySelector("#booking-reference").textContent = "Assigned when payment proof is submitted";
-    const button = start;
-    button.disabled = true;
+    start.disabled = true;
     document.querySelector("#form-feedback").textContent = "Payment details are ready. Your booking will be saved when you submit a TXID or screenshot.";
     feedback.textContent = "Send only the exact USDT amount on BNB Smart Chain (BEP20), then submit a TXID or screenshot below.";
     try {
@@ -63,26 +101,19 @@ export function setupCryptoPayment() {
       checkout.hidden = false;
       showStatus(booking);
       checkout.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (error) {
-      feedback.textContent = `Payment details could not be displayed. Please try again. ${error.message}`;
-    } finally { button.disabled = false; }
+    } catch (error) { feedback.textContent = `Payment details could not be displayed. Please try again. ${error.message}`; }
+    finally { start.disabled = false; }
   });
 
   document.querySelector("#copy-wallet")?.addEventListener("click", async (event) => {
-    try {
-      await navigator.clipboard.writeText(WALLET);
-      event.currentTarget.textContent = "Copied!";
-      setTimeout(() => { event.currentTarget.textContent = "Copy Address"; }, 1800);
-    } catch { feedback.textContent = "Copy unavailable; select and copy the wallet address manually."; }
+    try { await navigator.clipboard.writeText(WALLET); event.currentTarget.textContent = "Copied!"; setTimeout(() => { event.currentTarget.textContent = "Copy Address"; }, 1800); }
+    catch { feedback.textContent = "Copy unavailable; select and copy the wallet address manually."; }
   });
   photoInput?.addEventListener("change", () => {
     const file = photoInput.files?.[0];
     if (!file) { preview.hidden = true; preview.removeAttribute("src"); return; }
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5 * 1024 * 1024) {
-      photoInput.value = ""; preview.hidden = true; feedback.textContent = "Choose a JPG, PNG, or WEBP image up to 5 MB."; return;
-    }
-    preview.src = URL.createObjectURL(file);
-    preview.hidden = false;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5 * 1024 * 1024) { photoInput.value = ""; preview.hidden = true; feedback.textContent = "Choose a JPG, PNG, or WEBP image up to 5 MB."; return; }
+    preview.src = URL.createObjectURL(file); preview.hidden = false;
   });
   proofForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -91,8 +122,7 @@ export function setupCryptoPayment() {
     const txid = String(data.get("txid") || "").trim();
     if (!txid && !photoInput.files?.length) { feedback.textContent = "Submit either a transaction hash or a payment screenshot."; return; }
     const button = proofForm.querySelector("button[type=submit]");
-    button.disabled = true;
-    feedback.textContent = "Saving your booking and submitting payment proof…";
+    button.disabled = true; feedback.textContent = "Saving your booking and submitting payment proof…";
     try {
       if (!booking.saved) {
         const saved = await client("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ service: booking.service, name: booking.name, phone: booking.phone, destination: booking.destination, travelDates: booking.travelDates, note: booking.note }) });
@@ -100,24 +130,24 @@ export function setupCryptoPayment() {
         document.querySelector("#booking-reference").textContent = booking.bookingRef;
       }
       const result = await client(`/api/bookings/${encodeURIComponent(booking.bookingRef)}/payment`, { method: "POST", body: data });
-      showStatus(result);
+      remember(result.bookingRef); showStatus(result);
       feedback.textContent = "Proof submitted. Your payment is awaiting manual verification.";
-      clearInterval(pollTimer);
-      pollTimer = setInterval(() => pollStatus(booking.bookingRef), 5000);
-    } catch (error) {
-      feedback.textContent = `We couldn't save your booking or proof. Your payment details are still here; please retry when your connection is available. ${error.message}`;
-    } finally { button.disabled = false; }
+      startPolling(result.bookingRef);
+    } catch (error) { feedback.textContent = `We couldn't save your booking or proof. Your payment details are still here; please retry when your connection is available. ${error.message}`; }
+    finally { button.disabled = false; }
   });
 
-  document.querySelector("#booking-lookup-form")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const ref = document.querySelector("#lookup-reference").value.trim().toUpperCase();
-    const box = document.querySelector("#lookup-result");
-    box.textContent = "Checking status…";
-    try {
-      const result = await client(`/api/bookings/${encodeURIComponent(ref)}/status`);
-      box.innerHTML = `<strong>${escapeText(statusLabels[result.status] || result.status)}</strong><br>${escapeText(result.bookingRef)} · ${escapeText(result.service)} · ${money(result.amount)} USDT<br>Last updated ${escapeText(new Date(result.updatedAt).toLocaleString())}`;
-      if (result.status === "waiting_confirmation") setTimeout(() => document.querySelector("#booking-lookup-form").requestSubmit(), 5000);
-    } catch (error) { box.textContent = error.message; }
-  });
+  for (const form of document.querySelectorAll(".booking-status-lookup")) {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const ref = form.querySelector("input[name=bookingRef]").value.trim().toUpperCase();
+      lookup(ref, form.parentElement.querySelector(".booking-lookup-result"));
+    });
+  }
+  try {
+    const savedRef = localStorage.getItem(ACTIVE_BOOKING_KEY)?.trim().toUpperCase();
+    if (savedRef && /^BH-[A-F0-9]{8}$/.test(savedRef)) {
+      lookup(savedRef, document.querySelector("#persistent-booking-status"));
+    }
+  } catch { /* Status lookup remains available by manually entering the booking ID. */ }
 }
