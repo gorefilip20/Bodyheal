@@ -1,3 +1,10 @@
+import { setupCryptoPayment } from "./payments.js";
+import { setupAdmin } from "./admin.js";
+
+if (window.location.pathname === "/admin") {
+  document.querySelector("#app").innerHTML = `<div id="admin-app"></div>`;
+  setupAdmin();
+} else {
 const services = [
   {
     name: "Bodywork Massage",
@@ -191,10 +198,28 @@ app.innerHTML = `
         </div>
         <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
         <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
-        <button class="button button-dark form-submit" type="submit">Continue to send your request <span aria-hidden="true">↗</span></button>
+        <button class="button button-dark form-submit" id="crypto-pay-start" type="button">Continue to USDT payment <span aria-hidden="true">↗</span></button>
+        <button class="button button-outline form-submit" type="submit">Send SMS inquiry <span aria-hidden="true">↗</span></button>
         <p class="form-disclaimer">Your message will open in your text messaging app, addressed to BODYHEALING. Tap send there to complete your inquiry.</p>
         <p class="form-feedback" id="form-feedback" aria-live="polite" role="status"></p>
       </form>
+      <section class="crypto-panel" id="crypto-checkout" hidden aria-labelledby="crypto-title">
+        <p class="eyebrow"><span class="eyebrow-dot"></span>SECURE PAYMENT DETAILS</p>
+        <h3 id="crypto-title">Pay with USDT<br /><em>on BNB Smart Chain.</em></h3>
+        <p class="crypto-ref">Booking reference <strong id="booking-reference"></strong></p>
+        <p class="crypto-amount-label">Exact amount due</p><p class="crypto-amount" id="wallet-amount"></p>
+        <div class="wallet-qr-wrap"><canvas id="wallet-qr" aria-label="QR code for BODYHEALING receiving wallet"></canvas><p>Scan to copy the receiving wallet address. Confirm the correct network in your wallet app.</p></div>
+        <label class="wallet-address-label" for="wallet-address">Receiving wallet address</label><div class="wallet-copy-row"><code id="wallet-address"></code><button class="button button-outline" id="copy-wallet" type="button">Copy Address</button></div>
+        <p class="network-warning"><strong>Network warning</strong> Only send USDT via BNB Smart Chain (BEP20) to this address. Sending other assets may result in permanent loss.</p>
+        <form id="payment-proof-form" enctype="multipart/form-data">
+          <label for="payment-txid">Transaction Hash / TXID <span class="optional-label">Optional if you upload a screenshot</span></label><input id="payment-txid" name="txid" type="text" autocomplete="off" maxlength="80" placeholder="0x… (BNB Smart Chain transaction hash)" />
+          <label for="payment-screenshot">Payment screenshot <span class="optional-label">Optional if you provide a TXID · JPG / PNG / WEBP · max 5 MB</span></label><input id="payment-screenshot" name="proof" type="file" accept="image/jpeg,image/png,image/webp" /><img id="payment-preview" class="payment-preview" alt="Preview of payment screenshot" hidden />
+          <button class="button button-dark form-submit" type="submit">Submit Payment for Verification <span aria-hidden="true">↗</span></button>
+        </form>
+        <div id="payment-status" class="payment-status" hidden aria-live="polite"></div>
+        <p id="crypto-feedback" class="form-feedback" aria-live="polite" role="status"></p>
+        <div class="status-lookup"><h4>Check status by booking ID</h4><form id="booking-lookup-form"><label for="lookup-reference">Booking reference</label><input id="lookup-reference" required placeholder="BH-12345678" /><button class="button button-outline" type="submit">Check Status</button></form><p id="lookup-result" aria-live="polite"></p></div>
+      </section>
       <a class="dialog-call" href="tel:+16023665298">Prefer to call? (602) 366-5298</a>
     </div>
   </dialog>
@@ -289,3 +314,6 @@ document.querySelectorAll("[data-reveal]").forEach((element) => {
   }, { threshold: 0.14 });
   observer.observe(element);
 });
+
+setupCryptoPayment();
+}

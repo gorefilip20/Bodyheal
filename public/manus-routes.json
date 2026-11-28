@@ -1,5 +1,1 @@
-{
-  "routes": [
-    { "path": "/", "title": "BODYHEALING | Massage & Bodywork in Scottsdale" }
-  ]
-}
+{"routes":[{"path":"/","title":"BODYHEALING"},{"path":"/admin","title":"BODYHEALING Admin"}]}
