@@ -193,14 +193,18 @@ app.innerHTML = `
           <p class="travel-fields-heading">A little about your intensive</p>
           <label for="destination">Destination City &amp; Country</label>
           <input id="destination" name="destination" type="text" autocomplete="off" placeholder="City, Country" disabled />
-          <label for="travel-dates">Preferred Travel Dates</label>
-          <input id="travel-dates" name="travelDates" type="text" autocomplete="off" placeholder="e.g. June 10–14, 2027" disabled />
+          <fieldset class="travel-date-range" disabled>
+            <legend>Preferred Travel Dates</legend>
+            <div class="travel-date-inputs"><label for="travel-start">From<input id="travel-start" type="date" disabled /></label><label for="travel-end">Through<input id="travel-end" type="date" disabled /></label></div>
+          </fieldset>
+          <input id="travel-dates" name="travelDates" type="hidden" disabled />
+          <p class="travel-date-hint" id="travel-date-hint" aria-live="polite">Choose a start date and end date.</p>
         </div>
         <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
         <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
         <button class="button button-dark form-submit" id="crypto-pay-start" type="button">Continue to USDT payment <span aria-hidden="true">↗</span></button>
         <button class="button button-outline form-submit" id="email-inquiry" type="button">Send Email Inquiry <span aria-hidden="true">↗</span></button>
-        <p class="form-disclaimer">Your inquiry will open in your email app, addressed to BODYHEALING, or submit directly online.</p>
+        <p class="form-disclaimer">Opens a prefilled inquiry to BODYHEALING in your email app.</p>
         <p class="form-feedback" id="form-feedback" aria-live="polite" role="status"></p>
       </form>
       <section class="crypto-panel" id="crypto-checkout" hidden aria-labelledby="crypto-title">
@@ -232,13 +236,32 @@ const serviceChoice = document.querySelector("#service-choice");
 const travelFields = document.querySelector("#intensive-travel-fields");
 const destinationField = document.querySelector("#destination");
 const travelDatesField = document.querySelector("#travel-dates");
+const travelDateRange = document.querySelector(".travel-date-range");
+const travelStartField = document.querySelector("#travel-start");
+const travelEndField = document.querySelector("#travel-end");
+const todayLocal = new Date(); todayLocal.setMinutes(todayLocal.getMinutes() - todayLocal.getTimezoneOffset());
+const todayISO = todayLocal.toISOString().slice(0, 10);
+travelStartField.min = todayISO; travelEndField.min = todayISO;
+const syncTravelDates = () => {
+  travelEndField.min = travelStartField.value && travelStartField.value > todayISO ? travelStartField.value : todayISO;
+  if (travelEndField.value && travelEndField.value < travelEndField.min) travelEndField.value = "";
+  if (travelStartField.value && travelEndField.value) {
+    const format = (value) => new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    travelDatesField.value = travelStartField.value === travelEndField.value ? format(travelStartField.value) : `${format(travelStartField.value)} – ${format(travelEndField.value)}`;
+    document.querySelector("#travel-date-hint").textContent = travelDatesField.value;
+  } else { travelDatesField.value = ""; document.querySelector("#travel-date-hint").textContent = "Choose a start date and end date."; }
+};
+travelStartField.addEventListener("change", syncTravelDates); travelEndField.addEventListener("change", syncTravelDates);
 const syncIntensiveFields = () => {
   const isIntensive = serviceChoice.selectedOptions[0]?.dataset.kind === "intensive";
   travelFields.hidden = !isIntensive;
   destinationField.disabled = !isIntensive;
   travelDatesField.disabled = !isIntensive;
-  destinationField.required = isIntensive;
-  travelDatesField.required = isIntensive;
+  travelDateRange.disabled = !isIntensive;
+  travelStartField.disabled = !isIntensive; travelEndField.disabled = !isIntensive;
+  travelStartField.required = isIntensive; travelEndField.required = isIntensive;
+  travelDatesField.required = false;
+  if (!isIntensive) { travelStartField.value = ""; travelEndField.value = ""; syncTravelDates(); }
 };
 serviceChoice.addEventListener("change", syncIntensiveFields);
 const openers = document.querySelectorAll(".book-trigger");

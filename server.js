@@ -166,10 +166,10 @@ app.post("/api/bookings/:ref/payment", upload.single("proof"), async (req, res, 
   } catch (error) { next(error); }
 });
 async function statusData(ref) {
-  const [rows] = await pool.execute("SELECT booking_ref, status, service_name, amount_usd, txid, proof_name, created_at, updated_at FROM bodyheal_payments WHERE booking_ref = ?", [ref]);
+  const [rows] = await pool.execute("SELECT booking_ref, status, service_name, amount_usd, destination, travel_dates, txid, proof_name, created_at, updated_at FROM bodyheal_payments WHERE booking_ref = ?", [ref]);
   if (!rows.length) return null;
   const row = rows[0];
-  return { bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), currency: "USDT", createdAt: row.created_at, updatedAt: row.updated_at, txid: row.txid, proofSubmitted: Boolean(row.proof_name) };
+  return { bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), destination: row.destination, travelDates: row.travel_dates, currency: "USDT", createdAt: row.created_at, updatedAt: row.updated_at, txid: row.txid, proofSubmitted: Boolean(row.proof_name) };
 }
 app.get("/api/bookings/:ref/status", async (req, res, next) => {
   try { await ensureSchema(); const data = await statusData(cleanText(req.params.ref, 16).toUpperCase()); return data ? res.json(data) : res.status(404).json({ error: "Booking reference not found." }); }
