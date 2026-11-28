@@ -10,8 +10,8 @@ const services = [
     name: "Bodywork Massage",
     price: "$150+",
     duration: "60+ min",
-    image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-1.webp",
-    alt: "A therapist providing a relaxing back massage",
+    image: "/images/bodywork-male-back.jpg",
+    alt: "A male client receiving therapeutic back and shoulder massage",
     description:
       "For men and women seeking focused relief or a slower, restorative session. Work may include deep tissue, trigger point, myofascial, Swedish techniques, or reflexology—selected together to support mobility, athletic recovery, and everyday ease.",
   },
@@ -19,8 +19,8 @@ const services = [
     name: "Buccal Massage",
     price: "$150",
     duration: "55 min",
-    image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-3.webp",
-    alt: "A gentle facial massage focused on the jaw and cheeks",
+    image: "/images/buccal-facial-woman.jpg",
+    alt: "A woman receiving a gentle facial massage across the forehead and cheeks",
     description:
       "A precise facial massage for anyone holding tension through the jaw and cheeks. With consent and gloved hands, the therapist works externally and inside the mouth to soften tight facial muscles. A quiet, considered treatment for comfort and facial relaxation.",
   },
@@ -29,8 +29,8 @@ const services = [
     subtitle: "Oncology Massage",
     price: "$140",
     duration: "60 min",
-    image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-2.webp",
-    alt: "Gentle massage for a client resting comfortably",
+    image: "/images/gentle-shoulder-woman.jpg",
+    alt: "A woman receiving a gentle restorative shoulder and back massage",
     description:
       "A gentle, adapted massage for people during or after cancer treatment. Each visit considers your energy, medical history, treatment effects, and boundaries. Available to clients of all genders, with comfort and communication guiding every choice.",
   },
@@ -47,10 +47,10 @@ const hours = [
 ];
 
 const intensives = [
-  { name: "1 Day Private Intensive", price: "$5,000", image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-1.webp", alt: "Private therapeutic bodywork in a calm treatment setting", imageClass: "intensive-photo-one" },
-  { name: "Half Day Private Intensive", price: "$3,500", image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-3.webp", alt: "A focused restorative facial massage session", imageClass: "intensive-photo-two" },
-  { name: "Mini Intensive", price: "$1,750", image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-4.webp", alt: "A quiet hands-on massage session", imageClass: "intensive-photo-three" },
-  { name: "5 Day On-Site Intensive", price: "$25,000", image: "/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-2.webp", alt: "A personalized one-to-one massage experience", imageClass: "intensive-photo-four" },
+  { name: "1 Day Private Intensive", price: "$5,000", image: "/images/bodywork-male-back.jpg", alt: "A male client receiving private therapeutic back bodywork", imageClass: "intensive-photo-one" },
+  { name: "Half Day Private Intensive", price: "$3,500", image: "/images/buccal-facial-woman.jpg", alt: "A woman receiving an unhurried restorative facial massage", imageClass: "intensive-photo-two" },
+  { name: "Mini Intensive", price: "$1,750", image: "/images/gentle-shoulder-woman.jpg", alt: "Gentle shoulder massage during a private intensive", imageClass: "intensive-photo-three" },
+  { name: "5 Day On-Site Intensive", price: "$25,000", image: "/images/private-treatment-room.jpg", alt: "A quiet private treatment suite prepared for a multi-day intensive", imageClass: "intensive-photo-four" },
 ];
 
 const brand = `
@@ -136,7 +136,7 @@ app.innerHTML = `
     </section>
 
     <section class="intro section-pad" id="about">
-      <div class="intro-side" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>BODYWORK, WITH INTENTION</p><div class="intro-image-frame"><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-4.webp" alt="A calm massage session in a light-filled treatment room" loading="lazy" /><span class="image-note">A softer place to land.</span></div></div>
+      <div class="intro-side" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>BODYWORK, WITH INTENTION</p><div class="intro-image-frame"><img src="/images/private-treatment-room.jpg" alt="A private massage room with a prepared treatment table" loading="lazy" /><span class="image-note">A softer place to land.</span></div></div>
       <div class="intro-copy" data-reveal><p class="section-index">01 <span>—</span> A little about us</p><h2>Make room for<br /><em>feeling better.</em></h2><p>Every body arrives with a different story. We take the time to listen, then tailor each session with care—whether you’re looking for relief, a moment to exhale, or a gentler kind of support.</p><p>Our work is grounded in attentive touch, a safe and welcoming space, and respect for what feels right for you.</p><a class="text-link" href="#team">Meet your care team <span aria-hidden="true"></span></a></div>
       <div class="intro-asterisk" aria-hidden="true">✳</div>
     </section>
@@ -160,15 +160,15 @@ app.innerHTML = `
       <div class="intensive-grid">${intensiveCards}</div>
     </section>
 
-    <section class="gallery-section section-pad" id="selected-work" aria-labelledby="gallery-title"><div class="section-heading"><div><p class="eyebrow">SESSION PHOTOGRAPHS</p><h2 id="gallery-title">Selected work &amp;<br /><em>session gallery</em></h2></div><p class="section-heading-note">A glimpse of the care, settings, and hands-on work we offer.</p></div><div class="gallery-grid"><figure><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-1.webp" alt="Male client receiving focused shoulder and back recovery work" loading="lazy"><figcaption><strong>Deep tissue recovery</strong><span>Focused structural work for active bodies.</span></figcaption></figure><figure><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-2.webp" alt="Female client receiving restorative back bodywork" loading="lazy"><figcaption><strong>Restorative bodywork</strong><span>Unhurried care shaped to the person.</span></figcaption></figure><figure><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-3.webp" alt="Buccal facial massage performed by a therapist" loading="lazy"><figcaption><strong>Buccal facial sculpting</strong><span>Careful work for jaw and facial tension.</span></figcaption></figure><figure><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-4.webp" alt="A private massage intensive arranged in a travel residence" loading="lazy"><figcaption><strong>Private on-site care</strong><span>A considered treatment space, wherever you are.</span></figcaption></figure></div></section>
+    <section class="gallery-section section-pad" id="selected-work" aria-labelledby="gallery-title"><div class="section-heading"><div><p class="eyebrow">SESSION PHOTOGRAPHS</p><h2 id="gallery-title">Selected work &amp;<br /><em>session gallery</em></h2></div><p class="section-heading-note">A glimpse of the care, settings, and hands-on work we offer.</p></div><div class="gallery-grid"><figure><img src="/images/bodywork-male-back.jpg" alt="Male client receiving therapeutic shoulder and back recovery work" loading="lazy"><figcaption><strong>Deep tissue recovery</strong><span>Focused structural work for active bodies.</span></figcaption></figure><figure><img src="/images/gentle-shoulder-woman.jpg" alt="Female client receiving a restorative shoulder massage" loading="lazy"><figcaption><strong>Restorative bodywork</strong><span>Unhurried care shaped to the person.</span></figcaption></figure><figure><img src="/images/buccal-facial-woman.jpg" alt="A woman receiving facial massage focused on the jaw and cheeks" loading="lazy"><figcaption><strong>Buccal facial sculpting</strong><span>Careful work for jaw and facial tension.</span></figcaption></figure><figure><img src="/images/private-treatment-room.jpg" alt="A calm private treatment room prepared for an on-site intensive" loading="lazy"><figcaption><strong>Private on-site care</strong><span>A considered treatment space, wherever you are.</span></figcaption></figure></div></section>
 
     <section class="gentle-feature" aria-labelledby="gentle-title">
-      <div class="gentle-image"><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-2.webp" alt="A client resting as a practitioner gives a gentle face and head massage" loading="lazy" /></div>
+      <div class="gentle-image"><img src="/images/gentle-shoulder-woman.jpg" alt="A woman resting as a practitioner gives a gentle shoulder massage" loading="lazy" /></div>
       <div class="gentle-content" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>CARE THAT LISTENS</p><h2 id="gentle-title">A gentle touch.<br /><em>A little more ease.</em></h2><p>For anyone navigating cancer treatment or recovery, the smallest moments of comfort can mean a lot. Oncology massage is adapted with sensitivity to your needs, energy, and boundaries.</p><p>Sessions begin with a thoughtful intake. Touch is gentle and intentional, with your comfort at the center of every moment.</p><button class="button button-light book-trigger" type="button" data-service="Gentle Touch">Learn about Gentle Touch <span aria-hidden="true"></span></button></div>
     </section>
 
     <section class="team-section section-pad" id="team">
-      <div class="team-image" data-reveal><img src="/manus-storage/async-images/nohmN4gnCw7C1nKojRlepq/image-1.webp" alt="Hands providing attentive therapeutic massage" loading="lazy" /><span class="team-image-label">A calm, considered approach</span></div>
+      <div class="team-image" data-reveal><img src="/images/bodywork-male-back.jpg" alt="A male client receiving attentive therapeutic back massage" loading="lazy" /><span class="team-image-label">A calm, considered approach</span></div>
       <div class="team-copy" data-reveal><p class="section-index">02 <span>—</span> Meet your team</p><p class="eyebrow"><span class="eyebrow-dot"></span>THOUGHTFUL HANDS, ALWAYS</p><h2>Care that<br /><em>sees the whole you.</em></h2><p>Your therapist brings a thoughtful, individualized approach to every appointment. With specialized certification in oncology massage, they take time to understand your comfort, your history, and what support looks like for you.</p><p>There is no one-size-fits-all session here—only steady, compassionate care at your pace.</p><a class="text-link" href="tel:+16023665298">Let’s talk about what you need <span aria-hidden="true"></span></a></div>
     </section>
 
