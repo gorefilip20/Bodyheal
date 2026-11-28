@@ -9,6 +9,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const wallet = "0xF071f5f6D703dF16cE3715A912ef08791b783CDe";
+const corsOrigins = new Set((process.env.CORS_ORIGINS || "").split(",").map((origin) => origin.trim()).filter(Boolean));
 const catalog = new Map([
   ["Bodywork Massage", { amount: 150, intensive: false }],
   ["Buccal Massage", { amount: 150, intensive: false }],
@@ -28,6 +29,19 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "100kb" }));
 app.use((req, res, next) => {
+  const origin = req.get("Origin");
+  if (origin) {
+    const forwardedHost = req.get("x-forwarded-host")?.split(",")[0].trim();
+    const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0].trim();
+    const sameOrigin = `${forwardedProto || req.protocol}://${forwardedHost || req.get("host")}`;
+    if (origin !== sameOrigin && !corsOrigins.has(origin)) return res.status(403).json({ error: "Origin is not allowed." });
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Vary", "Origin");
+  }
+  if (req.method === "OPTIONS") return res.sendStatus(204);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "same-origin");
   res.setHeader("Cache-Control", "no-store");
@@ -50,15 +64,29 @@ const schema = `CREATE TABLE IF NOT EXISTS bodyheal_payments (
   txid VARCHAR(80) NULL UNIQUE,
   proof_key VARCHAR(220) NULL,
   proof_name VARCHAR(160) NULL,
+  proof_mime VARCHAR(40) NULL,
+  proof_data LONGBLOB NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   reviewed_at TIMESTAMP NULL,
   INDEX status_created (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
 let schemaReady = false;
+let schemaPromise = null;
 async function ensureSchema() {
   if (!pool) throw Object.assign(new Error("Payment service is not configured."), { status: 503 });
-  if (!schemaReady) { await pool.query(schema); schemaReady = true; }
+  if (schemaReady) return;
+  if (!schemaPromise) {
+    schemaPromise = (async () => {
+      await pool.query(schema);
+      const [columns] = await pool.query("SHOW COLUMNS FROM bodyheal_payments");
+      const existing = new Set(columns.map((column) => column.Field));
+      if (!existing.has("proof_mime")) await pool.query("ALTER TABLE bodyheal_payments ADD COLUMN proof_mime VARCHAR(40) NULL");
+      if (!existing.has("proof_data")) await pool.query("ALTER TABLE bodyheal_payments ADD COLUMN proof_data LONGBLOB NULL");
+      schemaReady = true;
+    })().catch((error) => { schemaPromise = null; throw error; });
+  }
+  await schemaPromise;
 }
 function cleanText(value, max) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
 function makeRef() { return `BH-${crypto.randomBytes(4).toString("hex").toUpperCase()}`; }
@@ -87,17 +115,7 @@ app.use((req, _res, next) => {
   next();
 });
 
-async function presign(method, key) {
-  if (!process.env.MANUS_API_URL || !process.env.MANUS_API_KEY) throw new Error("Durable proof storage is not configured.");
-  const endpoint = method === "put" ? "put" : "get";
-  const url = new URL(`/v1/storage/presign/${endpoint}`, process.env.MANUS_API_URL);
-  url.searchParams.set("path", key);
-  const response = await fetch(url, { headers: { Authorization: `Bearer ${process.env.MANUS_API_KEY}` } });
-  const data = await response.json();
-  if (!response.ok || !data.url) throw new Error("Could not access durable proof storage.");
-  return data.url;
-}
-async function saveProof(file, ref) {
+async function saveProof(file) {
   if (!file) return null;
   const sig = file.buffer.subarray(0, 12);
   const valid = (file.mimetype === "image/jpeg" && sig[0] === 0xff && sig[1] === 0xd8) ||
@@ -105,11 +123,7 @@ async function saveProof(file, ref) {
     (file.mimetype === "image/webp" && sig.toString("ascii", 0, 4) === "RIFF" && sig.toString("ascii", 8, 12) === "WEBP");
   if (!valid) throw Object.assign(new Error("Upload a valid JPG, PNG, or WEBP image."), { status: 400 });
   const ext = file.mimetype === "image/jpeg" ? "jpg" : file.mimetype.split("/")[1];
-  const key = `bodyheal/payments/${ref}/${crypto.randomBytes(20).toString("hex")}.${ext}`;
-  const target = await presign("put", key);
-  const response = await fetch(target, { method: "PUT", headers: { "Content-Type": file.mimetype }, body: file.buffer });
-  if (!response.ok) throw new Error("The proof image could not be stored.");
-  return { key, name: cleanText(file.originalname, 160) || `payment-proof.${ext}` };
+  return { name: cleanText(file.originalname, 160) || `payment-proof.${ext}`, mime: file.mimetype, data: file.buffer };
 }
 
 app.get("/api/health", (_req, res) => res.status(200).json({ status: "ok" }));
@@ -146,16 +160,16 @@ app.post("/api/bookings/:ref/payment", upload.single("proof"), async (req, res, 
     if (!txid && !req.file) return res.status(400).json({ error: "Submit a transaction hash or payment screenshot." });
     const [rows] = await pool.execute("SELECT id, status FROM bodyheal_payments WHERE booking_ref = ?", [ref]);
     if (!rows.length) return res.status(404).json({ error: "Booking reference not found." });
-    const proof = await saveProof(req.file, ref);
-    await pool.execute("UPDATE bodyheal_payments SET txid = ?, proof_key = ?, proof_name = ?, status = 'waiting_confirmation' WHERE booking_ref = ? AND status IN ('payment_pending','needs_review')", [txid || null, proof?.key || null, proof?.name || null, ref]);
+    const proof = await saveProof(req.file);
+    await pool.execute("UPDATE bodyheal_payments SET txid = ?, proof_key = NULL, proof_name = COALESCE(?, proof_name), proof_mime = COALESCE(?, proof_mime), proof_data = COALESCE(?, proof_data), status = 'waiting_confirmation' WHERE booking_ref = ? AND status IN ('payment_pending','needs_review')", [txid || null, proof?.name || null, proof?.mime || null, proof?.data || null, ref]);
     res.json(await statusData(ref));
   } catch (error) { next(error); }
 });
 async function statusData(ref) {
-  const [rows] = await pool.execute("SELECT booking_ref, status, service_name, amount_usd, txid, proof_key, created_at, updated_at FROM bodyheal_payments WHERE booking_ref = ?", [ref]);
+  const [rows] = await pool.execute("SELECT booking_ref, status, service_name, amount_usd, txid, proof_name, created_at, updated_at FROM bodyheal_payments WHERE booking_ref = ?", [ref]);
   if (!rows.length) return null;
   const row = rows[0];
-  return { bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), currency: "USDT", createdAt: row.created_at, updatedAt: row.updated_at, txid: row.txid, proofSubmitted: Boolean(row.proof_key) };
+  return { bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), currency: "USDT", createdAt: row.created_at, updatedAt: row.updated_at, txid: row.txid, proofSubmitted: Boolean(row.proof_name) };
 }
 app.get("/api/bookings/:ref/status", async (req, res, next) => {
   try { await ensureSchema(); const data = await statusData(cleanText(req.params.ref, 16).toUpperCase()); return data ? res.json(data) : res.status(404).json({ error: "Booking reference not found." }); }
@@ -182,9 +196,20 @@ app.post("/api/admin/logout", (_req, res) => { res.clearCookie("bh_admin", { htt
 app.get("/api/admin/bookings", requireAdmin, async (_req, res, next) => {
   try {
     await ensureSchema();
-    const [rows] = await pool.query("SELECT booking_ref, status, service_name, amount_usd, destination, travel_dates, customer_name, phone, note, txid, proof_key, proof_name, created_at, updated_at FROM bodyheal_payments ORDER BY created_at DESC LIMIT 200");
-    const bookings = await Promise.all(rows.map(async (row) => ({ bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), destination: row.destination, travelDates: row.travel_dates, name: row.customer_name, phone: row.phone, note: row.note, txid: row.txid, proofName: row.proof_name, proofUrl: row.proof_key ? await presign("get", row.proof_key) : null, createdAt: row.created_at })));
+    const [rows] = await pool.query("SELECT booking_ref, status, service_name, amount_usd, destination, travel_dates, customer_name, phone, note, txid, proof_name, proof_data IS NOT NULL AS proof_submitted, created_at, updated_at FROM bodyheal_payments ORDER BY created_at DESC LIMIT 200");
+    const bookings = rows.map((row) => ({ bookingRef: row.booking_ref, status: row.status, service: row.service_name, amount: Number(row.amount_usd), destination: row.destination, travelDates: row.travel_dates, name: row.customer_name, phone: row.phone, note: row.note, txid: row.txid, proofName: row.proof_name, proofUrl: row.proof_submitted ? `/api/admin/bookings/${encodeURIComponent(row.booking_ref)}/proof` : null, createdAt: row.created_at }));
     res.json({ bookings });
+  } catch (error) { next(error); }
+});
+app.get("/api/admin/bookings/:ref/proof", requireAdmin, async (req, res, next) => {
+  try {
+    await ensureSchema();
+    const [rows] = await pool.execute("SELECT proof_mime, proof_data FROM bodyheal_payments WHERE booking_ref = ?", [cleanText(req.params.ref, 16).toUpperCase()]);
+    if (!rows.length || !rows[0].proof_data) return res.status(404).json({ error: "Payment screenshot not found." });
+    res.setHeader("Content-Type", rows[0].proof_mime || "application/octet-stream");
+    res.setHeader("Content-Disposition", "inline");
+    res.setHeader("Cache-Control", "private, no-store");
+    res.send(rows[0].proof_data);
   } catch (error) { next(error); }
 });
 app.patch("/api/admin/bookings/:ref/status", requireAdmin, async (req, res, next) => {

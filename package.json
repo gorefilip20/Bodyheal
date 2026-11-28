@@ -18,5 +18,8 @@
     "mysql2": "^3.24.6",
     "qrcode": "^1.5.4"
   },
-  "packageManager": "npm@10.8.2"
+  "packageManager": "npm@10.8.2",
+  "engines": {
+    "node": "22.x"
+  }
 }
