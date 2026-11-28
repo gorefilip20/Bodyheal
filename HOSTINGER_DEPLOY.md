@@ -23,16 +23,17 @@ In the app's **Environment variables** page (or the first-deploy environment-var
 ```dotenv
 NODE_ENV=production
 BODYHEAL_ADMIN_PASSCODE=replace-with-a-long-unique-secret-at-least-16-characters
+BODYHEAL_ADMIN_DEFAULT_PASSCODE=
 DATABASE_URL=mysql://DB_USER:URL_ENCODED_PASSWORD@DB_HOST:3306/DB_NAME
 CORS_ORIGINS=https://bodyheal.shop
 VITE_BODYHEAL_CONTACT_EMAIL=concierge@bodyheal.shop
 ```
 
-`BODYHEAL_ADMIN_PASSCODE` must be private, unique, and at least 16 characters; a randomly generated 24+ character passphrase is recommended. Do not commit it or include it in any client-side variable.
+`BODYHEAL_ADMIN_PASSCODE` is the primary private passcode and must be at least 16 characters. If absent, the app accepts `BODYHEAL_ADMIN_DEFAULT_PASSCODE` when supplied. If both are absent, first startup creates and persists a cryptographically random fallback under `data/admin-passcode.json`, and prints it once to the Node app startup log so you can sign in and then set `BODYHEAL_ADMIN_PASSCODE` in hPanel. Treat that log value as a secret and set the primary variable promptly. Neither passcode is included in the browser bundle or committed. Do not add a fixed, publicly shared default password.
 
-`DATABASE_URL` must point to a MySQL server reachable from the Hostinger Node app. Create a dedicated production database and user in the database section provided by the hosting account, grant that user permission to create and alter tables, and use the exact hostname, port, database name, username, and password shown there. URL-encode reserved characters in the username/password before placing them in the URL. Do **not** reuse the Manus/Webdev `DATABASE_URL`: its managed database endpoint is not automatically available to Hostinger. The app creates `bodyheal_payments` on first API use and adds the proof columns if they are missing. Back up the database before any later schema changes.
+`DATABASE_URL` is optional. When set to a reachable MySQL server, that is the primary store; create a dedicated production database and user, grant permission to create/alter tables, and URL-encode reserved characters in the DSN. Do **not** reuse the Manus/Webdev `DATABASE_URL`, because it is not automatically reachable from Hostinger. The app creates `bodyheal_payments` on first API use. If `DATABASE_URL` is omitted or empty, the app automatically uses `data/bookings.json` and private screenshots in `data/uploads/`. Keep the app root writable and back up `data/`; confirm Hostinger retains this directory across redeploys, since local files are not a substitute for off-server backups.
 
-Hostinger's currently published Node.js app database wizard documents Supabase and MongoDB Atlas rather than a generic MySQL connector. If your hPanel plan does not provide a MySQL database that this app can reach, provision a MySQL-compatible database accessible to Hostinger, then set its DSN as `DATABASE_URL`. The database provider may require TLS or source-IP permissions; use its connection details and allowlist requirements. Never put database credentials in the Git repository.
+If you do not have a reachable MySQL service, you may leave `DATABASE_URL` unset and use the local JSON/file fallback; for stronger durability, provision a MySQL-compatible database accessible to Hostinger and set its DSN. Providers may require TLS or source-IP permissions. Never put database credentials in the Git repository.
 
 `VITE_BODYHEAL_CONTACT_EMAIL` is the public recipient used by the prefilled `mailto:` inquiry button. The official public inquiry recipient is `concierge@bodyheal.shop`. Set this value in the Hostinger build environment before building; Vite embeds it in the browser bundle. The address is public and is not a secret.
 
@@ -44,7 +45,7 @@ No `MANUS_API_URL`, `MANUS_API_KEY`, or S3/object-storage variables are required
 
 In hPanel, open the website’s **Node.js** application settings and confirm the application is deployed as a Node.js web app with the project root as its app root, `npm install`/`npm ci` dependencies installed, `npm run build` run during deployment, and `npm start` as the startup command. The start command launches `server.js`, which serves `dist/`, handles `/api/*`, and falls back to `dist/index.html` for `/admin` and other client-side routes. Set `PORT` only if Hostinger explicitly provides it; the server reads the platform-provided value. Redeploy/restart the Node app after changing environment variables.
 
-Do not deploy only the contents of `dist/` as a static Website if bookings, payment proof, admin login, or status APIs are needed: static hosting cannot execute Express or `/api/*`. `public/.htaccess` is included as an Apache-compatible SPA fallback when Apache serves the built files, but it does not provide the Node APIs or admin data. Verify the app mode by opening `https://bodyheal.shop/api/health` and confirming a JSON response such as `{"status":"ok"}`, then open `https://bodyheal.shop/admin` directly. The Admin screen displays a setup warning if `BODYHEAL_ADMIN_PASSCODE` or `DATABASE_URL` is missing.
+Do not deploy only the contents of `dist/` as a static Website if bookings, payment proof, admin login, or status APIs are needed: static hosting cannot execute Express or `/api/*`. `public/.htaccess` is included as an Apache-compatible SPA fallback when Apache serves the built files, but it does not provide the Node APIs or admin data. Verify the app mode by opening `https://bodyheal.shop/api/health` and confirming a JSON response such as `{"status":"ok"}`, then open `https://bodyheal.shop/admin` directly. Use `/api/admin/setup-status` to check whether MySQL or the local-file fallback is active. Missing `DATABASE_URL` is supported; it does not block bookings. The admin passcode falls back to `BODYHEAL_ADMIN_DEFAULT_PASSCODE`, or a one-time generated secret printed to the first-start Node log and persisted in `data/admin-passcode.json`.
 
 ## Domain and HTTPS
 
