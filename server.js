@@ -74,7 +74,7 @@ const schema = `CREATE TABLE IF NOT EXISTS bodyheal_payments (
 let schemaReady = false;
 let schemaPromise = null;
 async function ensureSchema() {
-  if (!pool) throw Object.assign(new Error("Payment service is not configured."), { status: 503 });
+  if (!pool) throw Object.assign(new Error("DATABASE_URL is not configured. Add the MySQL connection string to the Hostinger Node.js app environment and restart the app."), { status: 503 });
   if (schemaReady) return;
   if (!schemaPromise) {
     schemaPromise = (async () => {
@@ -127,6 +127,7 @@ async function saveProof(file) {
 }
 
 app.get("/api/health", (_req, res) => res.status(200).json({ status: "ok" }));
+app.get("/api/admin/setup-status", (_req, res) => res.json({ databaseConfigured: Boolean(pool), passcodeConfigured: Boolean(secret && secret.length >= 16) }));
 app.get("/api/payment-config", (_req, res) => res.json({ wallet, network: "BNB Smart Chain (BEP20)", currency: "USDT" }));
 app.post("/api/bookings", async (req, res, next) => {
   try {
@@ -177,6 +178,7 @@ app.get("/api/bookings/:ref/status", async (req, res, next) => {
 });
 let loginAttempts = new Map();
 app.post("/api/admin/login", (req, res) => {
+  if (!secret || secret.length < 16) return res.status(503).json({ error: "Admin access is not configured. Set BODYHEAL_ADMIN_PASSCODE (at least 16 characters) in Hostinger's Node.js app environment, then restart the app." });
   const ip = req.ip;
   const attempt = loginAttempts.get(ip) || { count: 0, until: 0 };
   if (attempt.until > Date.now()) return res.status(429).json({ error: "Too many attempts. Wait 15 minutes and try again." });
@@ -222,6 +224,9 @@ app.patch("/api/admin/bookings/:ref/status", requireAdmin, async (req, res, next
     res.json({ ok: true });
   } catch (error) { next(error); }
 });
+
+// Do not let unknown API requests fall through to the SPA document.
+app.use("/api", (_req, res) => res.status(404).json({ error: "API endpoint not found." }));
 
 if (process.env.NODE_ENV !== "production") {
   const { createServer: createViteServer } = await import("vite");

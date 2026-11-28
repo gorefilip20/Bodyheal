@@ -178,7 +178,7 @@ app.innerHTML = `
     </section>
   </main>
 
-  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><nav class="footer-navigation" aria-label="Footer navigation"><a href="#services">Services</a><a href="#intensives">Intensives</a><a href="#about">About</a><a href="#team">Team</a><a href="#contact">Contact</a></nav><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="#home">Back to top ↑</a></div></footer>
+  <footer class="site-footer"><a class="footer-brand" href="#home">${brand}<span>BODYHEALING</span></a><p>Thoughtful care, right where you are.</p><nav class="footer-navigation" aria-label="Footer navigation"><a href="#services">Services</a><a href="#intensives">Intensives</a><a href="#about">About</a><a href="#team">Team</a><a href="#contact">Contact</a></nav><div class="footer-bottom"><span>© <span id="year"></span> BODYHEALING · SCOTTSDALE, AZ</span><a href="/admin" class="footer-admin-link">Admin</a><a href="#home">Back to top ↑</a></div></footer>
 
   <dialog class="booking-dialog" id="booking-dialog" aria-labelledby="dialog-title">
     <button class="dialog-close" type="button" aria-label="Close booking form">×</button>
