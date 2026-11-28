@@ -199,8 +199,8 @@ app.innerHTML = `
         <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
         <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
         <button class="button button-dark form-submit" id="crypto-pay-start" type="button">Continue to USDT payment <span aria-hidden="true">↗</span></button>
-        <button class="button button-outline form-submit" type="submit">Send SMS inquiry <span aria-hidden="true">↗</span></button>
-        <p class="form-disclaimer">Your message will open in your text messaging app, addressed to BODYHEALING. Tap send there to complete your inquiry.</p>
+        <button class="button button-outline form-submit" id="email-inquiry" type="button">Send Email Inquiry <span aria-hidden="true">↗</span></button>
+        <p class="form-disclaimer">Your inquiry will open in your email app, addressed to BODYHEALING, or submit directly online.</p>
         <p class="form-feedback" id="form-feedback" aria-live="polite" role="status"></p>
       </form>
       <section class="crypto-panel" id="crypto-checkout" hidden aria-labelledby="crypto-title">
@@ -263,14 +263,24 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && dialog.open) dialog.close();
 });
 
-document.querySelector("#booking-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  const selectedOption = serviceChoice.selectedOptions[0];
-  const selectedPrice = selectedOption?.dataset.price || "";
+document.querySelector("#email-inquiry").addEventListener("click", () => {
+  const formElement = document.querySelector("#booking-form");
+  const feedback = document.querySelector("#form-feedback");
+  if (!formElement.reportValidity()) {
+    feedback.textContent = "Please complete the required booking and travel fields before sending your inquiry.";
+    return;
+  }
+  const contactEmail = import.meta.env.VITE_BODYHEAL_CONTACT_EMAIL?.trim();
+  if (!contactEmail) {
+    feedback.textContent = "Email inquiries are not configured yet. Please call BODYHEALING at (602) 366-5298.";
+    return;
+  }
+  const form = new FormData(formElement);
+  const selectedOption = document.querySelector("#service-choice").selectedOptions[0];
+  const selectedPrice = selectedOption?.dataset.price || ({ "Bodywork Massage": "$150+", "Buccal Massage": "$150", "Gentle Touch": "$140" }[form.get("service")] || "");
   const message = [
     `Hello BODYHEALING, I’d like to ask about an appointment.`,
-    selectedPrice ? `Intensive package: ${form.get("service")}` : `Service: ${form.get("service")}`,
+    selectedOption?.dataset.kind === "intensive" ? `Intensive package: ${form.get("service")}` : `Service: ${form.get("service")}`,
     selectedPrice ? `Price: ${selectedPrice}` : "",
     form.get("destination") ? `Destination City & Country: ${form.get("destination")}` : "",
     form.get("travelDates") ? `Preferred Travel Dates: ${form.get("travelDates")}` : "",
@@ -278,10 +288,9 @@ document.querySelector("#booking-form").addEventListener("submit", (event) => {
     `Phone: ${form.get("phone")}`,
     form.get("note") ? `Note: ${form.get("note")}` : "",
   ].filter(Boolean).join("\n");
-  const smsUrl = `sms:+16023665298?&body=${encodeURIComponent(message)}`;
-  const feedback = document.querySelector("#form-feedback");
-  feedback.textContent = "Your appointment request is ready in your messaging app. Tap send there to complete it.";
-  window.location.href = smsUrl;
+  const subject = `BODYHEALING inquiry — ${form.get("service")}`;
+  window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+  feedback.textContent = "Your prefilled email inquiry is ready in your email app.";
 });
 
 const menuToggle = document.querySelector(".menu-toggle");

@@ -25,6 +25,7 @@ NODE_ENV=production
 BODYHEAL_ADMIN_PASSCODE=replace-with-a-long-unique-secret-at-least-16-characters
 DATABASE_URL=mysql://DB_USER:URL_ENCODED_PASSWORD@DB_HOST:3306/DB_NAME
 CORS_ORIGINS=https://bodyheal.shop
+VITE_BODYHEAL_CONTACT_EMAIL=replace-with-official-bodyhealing-email-address
 ```
 
 `BODYHEAL_ADMIN_PASSCODE` must be private, unique, and at least 16 characters; a randomly generated 24+ character passphrase is recommended. Do not commit it or include it in any client-side variable.
@@ -32,6 +33,8 @@ CORS_ORIGINS=https://bodyheal.shop
 `DATABASE_URL` must point to a MySQL server reachable from the Hostinger Node app. Create a dedicated production database and user in the database section provided by the hosting account, grant that user permission to create and alter tables, and use the exact hostname, port, database name, username, and password shown there. URL-encode reserved characters in the username/password before placing them in the URL. Do **not** reuse the Manus/Webdev `DATABASE_URL`: its managed database endpoint is not automatically available to Hostinger. The app creates `bodyheal_payments` on first API use and adds the proof columns if they are missing. Back up the database before any later schema changes.
 
 Hostinger's currently published Node.js app database wizard documents Supabase and MongoDB Atlas rather than a generic MySQL connector. If your hPanel plan does not provide a MySQL database that this app can reach, provision a MySQL-compatible database accessible to Hostinger, then set its DSN as `DATABASE_URL`. The database provider may require TLS or source-IP permissions; use its connection details and allowlist requirements. Never put database credentials in the Git repository.
+
+`VITE_BODYHEAL_CONTACT_EMAIL` is the public recipient used by the prefilled `mailto:` inquiry button. The repository has no existing contact-email setting or verified BODYHEALING address, so replace the placeholder with the exact official address from your site settings before the production build; this Vite variable is embedded in the browser bundle. Do not guess the address.
 
 `CORS_ORIGINS` is a comma-separated exact-origin allowlist for a browser frontend hosted separately from this API. Because this deployment serves both the site and API at `https://bodyheal.shop`, same-origin requests need no CORS exception; the value above is safe for that origin and also makes the intended public origin explicit. Do not use `*` with credentialed admin requests. If the site is also served from `https://www.bodyheal.shop` or another separate origin, add that exact origin, comma-separated, only if it is actually in use. `PORT` is assigned by the Node hosting runtime; the server reads `process.env.PORT` and falls back to `3000` for local/container use, so do not pin a different port in hPanel.
 

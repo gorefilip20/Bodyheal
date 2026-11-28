@@ -27,7 +27,7 @@ The listed USDT figure is a USD-denominated quote using a nominal 1 USD = 1 USDT
 
 Bookings receive a unique `BH-...` reference and can be looked up in the payment panel. Clients can submit a BNB Smart Chain TXID, a JPG/PNG/WEBP screenshot up to 5 MB, or both. Proof images are validated and stored as binary MySQL data, then served only through an authenticated admin endpoint. An uploaded image or TXID is a claim, not proof of settlement. An administrator must independently verify the transfer on-chain before manually marking a booking successful. The app does not perform automatic blockchain monitoring or payment-provider settlement.
 
-Admin review is at `/admin`, with `Mark as Successful` and `Reject / Needs Review` actions. SMS inquiry remains separate and opens the visitor's messaging application; it is not sent by the server.
+Admin review is at `/admin`, with `Mark as Successful` and `Reject / Needs Review` actions. Email inquiry opens a prefilled `mailto:` message using the public `VITE_BODYHEAL_CONTACT_EMAIL` build variable; the verified official address must be supplied in the deployment environment.
 
 ## Security and operations
 

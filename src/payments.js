@@ -1,10 +1,12 @@
 import QRCode from "qrcode";
 
+const WALLET = "0xF071f5f6D703dF16cE3715A912ef08791b783CDe";
+const SERVICE_AMOUNTS = { "Bodywork Massage": 150, "Buccal Massage": 150, "Gentle Touch": 140 };
 const escapeText = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-const statusLabels = { payment_pending: "Payment not submitted", waiting_confirmation: "Waiting for Confirmation", successful: "Payment Successful — Booking Confirmed", needs_review: "Needs Review — Please contact BODYHEALING" };
+const statusLabels = { payment_pending: "Payment details ready — submit proof to save your booking", waiting_confirmation: "Waiting for Confirmation", successful: "Payment Successful — Booking Confirmed", needs_review: "Needs Review — Please contact BODYHEALING" };
 const money = (amount) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(amount);
 const client = async (url, options = {}) => {
-  const response = await fetch(url, { credentials: "same-origin", ...options });
+  const response = await fetch(url, { credentials: "same-origin", signal: AbortSignal.timeout(15000), ...options });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Request failed. Please try again.");
   return data;
@@ -23,39 +25,50 @@ export function setupCryptoPayment() {
   let pollTimer = null;
 
   const showStatus = (data) => {
-    document.querySelector("#payment-status").innerHTML = `<p class="payment-status-badge ${data.status === "successful" ? "is-success" : data.status === "needs_review" ? "is-review" : "is-waiting"}">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p><dl class="payment-status-details"><div><dt>Booking reference</dt><dd>${escapeText(data.bookingRef)}</dd></div><div><dt>Package</dt><dd>${escapeText(data.service)}</dd></div><div><dt>Amount</dt><dd>${money(data.amount)} USD / ${money(data.amount)} USDT</dd></div><div><dt>Updated</dt><dd>${escapeText(new Date(data.updatedAt || data.createdAt).toLocaleString())}</dd></div><div><dt>Submitted proof</dt><dd>${escapeText(data.txid ? `TXID ${data.txid.slice(0, 14)}…${data.txid.slice(-8)}` : data.proofSubmitted ? "Payment screenshot received" : "No proof submitted")}</dd></div></dl>`;
+    document.querySelector("#payment-status").innerHTML = `<p class="payment-status-badge ${data.status === "successful" ? "is-success" : data.status === "needs_review" ? "is-review" : "is-waiting"}">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p><dl class="payment-status-details"><div><dt>Booking reference</dt><dd>${escapeText(data.bookingRef || "Assigned when payment proof is submitted")}</dd></div><div><dt>Package</dt><dd>${escapeText(data.service)}</dd></div><div><dt>Amount</dt><dd>${money(data.amount)} USD / ${money(data.amount)} USDT</dd></div>${data.updatedAt || data.createdAt ? `<div><dt>Updated</dt><dd>${escapeText(new Date(data.updatedAt || data.createdAt).toLocaleString())}</dd></div>` : ""}<div><dt>Submitted proof</dt><dd>${escapeText(data.txid ? `TXID ${data.txid.slice(0, 14)}…${data.txid.slice(-8)}` : data.proofSubmitted ? "Payment screenshot received" : "Not submitted yet")}</dd></div></dl>`;
     document.querySelector("#payment-status").hidden = false;
-    document.querySelector("#payment-proof-form").hidden = data.status !== "payment_pending" && data.status !== "needs_review";
+    proofForm.hidden = data.status !== "payment_pending" && data.status !== "needs_review";
     if (data.status === "successful" || data.status === "needs_review") clearInterval(pollTimer);
   };
   const pollStatus = async (ref) => {
     try { const data = await client(`/api/bookings/${encodeURIComponent(ref)}/status`); showStatus(data); }
-    catch (error) { feedback.textContent = error.message; }
+    catch (error) { feedback.textContent = `We couldn't refresh your booking status just now. ${error.message}`; }
   };
 
   start?.addEventListener("click", async () => {
-    if (!bookingForm.reportValidity()) return;
+    if (!bookingForm.reportValidity()) {
+      document.querySelector("#form-feedback").textContent = "Please complete the required booking and travel fields before continuing.";
+      return;
+    }
+    const form = new FormData(bookingForm);
+    const selected = bookingForm.querySelector("#service-choice").selectedOptions[0];
+    const service = String(form.get("service") || "");
+    const amount = Number(String(selected?.dataset.price || "").replace(/[^0-9.]/g, "")) || SERVICE_AMOUNTS[service];
+    if (!amount) {
+      document.querySelector("#form-feedback").textContent = "Please choose a valid service or intensive package.";
+      return;
+    }
+    booking = { service, amount, name: form.get("name"), phone: form.get("phone"), destination: form.get("destination"), travelDates: form.get("travelDates"), note: form.get("note"), wallet: WALLET, network: "BNB Smart Chain (BEP20)", status: "payment_pending", saved: false };
+    document.querySelector("#wallet-amount").textContent = `${money(amount)} USD / ${money(amount)} USDT`;
+    document.querySelector("#wallet-address").textContent = WALLET;
+    document.querySelector("#booking-reference").textContent = "Assigned when payment proof is submitted";
     const button = start;
     button.disabled = true;
-    feedback.textContent = "Preparing your secure payment details…";
+    document.querySelector("#form-feedback").textContent = "Payment details are ready. Your booking will be saved when you submit a TXID or screenshot.";
+    feedback.textContent = "Send only the exact USDT amount on BNB Smart Chain (BEP20), then submit a TXID or screenshot below.";
     try {
-      const values = new FormData(bookingForm);
-      booking = await client("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ service: values.get("service"), name: values.get("name"), phone: values.get("phone"), destination: values.get("destination"), travelDates: values.get("travelDates"), note: values.get("note") }) });
-      document.querySelector("#wallet-amount").textContent = `${money(booking.amount)} USD / ${money(booking.amount)} USDT`;
-      document.querySelector("#wallet-address").textContent = booking.wallet;
-      document.querySelector("#booking-reference").textContent = booking.bookingRef;
-      await QRCode.toCanvas(document.querySelector("#wallet-qr"), booking.wallet, { width: 184, margin: 1, color: { dark: "#27342d", light: "#ffffff" } });
+      await QRCode.toCanvas(document.querySelector("#wallet-qr"), WALLET, { width: 184, margin: 1, color: { dark: "#27342d", light: "#ffffff" } });
       checkout.hidden = false;
-      feedback.textContent = "Booking created. Send only the exact USDT amount on BNB Smart Chain (BEP20), then submit your TXID or screenshot below.";
       showStatus(booking);
       checkout.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (error) { feedback.textContent = error.message; }
-    finally { button.disabled = false; }
+    } catch (error) {
+      feedback.textContent = `Payment details could not be displayed. Please try again. ${error.message}`;
+    } finally { button.disabled = false; }
   });
 
   document.querySelector("#copy-wallet")?.addEventListener("click", async (event) => {
     try {
-      await navigator.clipboard.writeText(document.querySelector("#wallet-address").textContent);
+      await navigator.clipboard.writeText(WALLET);
       event.currentTarget.textContent = "Copied!";
       setTimeout(() => { event.currentTarget.textContent = "Copy Address"; }, 1800);
     } catch { feedback.textContent = "Copy unavailable; select and copy the wallet address manually."; }
@@ -71,20 +84,27 @@ export function setupCryptoPayment() {
   });
   proofForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!booking) { feedback.textContent = "Create a booking first."; return; }
+    if (!booking) { feedback.textContent = "Continue to payment details first."; return; }
     const data = new FormData(proofForm);
     const txid = String(data.get("txid") || "").trim();
     if (!txid && !photoInput.files?.length) { feedback.textContent = "Submit either a transaction hash or a payment screenshot."; return; }
     const button = proofForm.querySelector("button[type=submit]");
     button.disabled = true;
-    feedback.textContent = "Submitting payment proof securely…";
+    feedback.textContent = "Saving your booking and submitting payment proof…";
     try {
+      if (!booking.saved) {
+        const saved = await client("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ service: booking.service, name: booking.name, phone: booking.phone, destination: booking.destination, travelDates: booking.travelDates, note: booking.note }) });
+        booking = { ...booking, ...saved, saved: true };
+        document.querySelector("#booking-reference").textContent = booking.bookingRef;
+      }
       const result = await client(`/api/bookings/${encodeURIComponent(booking.bookingRef)}/payment`, { method: "POST", body: data });
       showStatus(result);
       feedback.textContent = "Proof submitted. Your payment is awaiting manual verification.";
+      clearInterval(pollTimer);
       pollTimer = setInterval(() => pollStatus(booking.bookingRef), 5000);
-    } catch (error) { feedback.textContent = error.message; }
-    finally { button.disabled = false; }
+    } catch (error) {
+      feedback.textContent = `We couldn't save your booking or proof. Your payment details are still here; please retry when your connection is available. ${error.message}`;
+    } finally { button.disabled = false; }
   });
 
   document.querySelector("#booking-lookup-form")?.addEventListener("submit", async (event) => {
