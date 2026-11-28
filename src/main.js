@@ -75,7 +75,7 @@ const serviceCards = services
           ${index === 2 ? `<div class="benefits"><span>Reduced stress</span><span>Restful sleep</span><span>Gentle support</span></div>` : ""}
           <div class="service-bottom">
             <div class="service-meta"><span class="service-price">${service.price}</span><span class="meta-divider" aria-hidden="true"></span><span>${service.duration}</span></div>
-            <button class="text-link book-trigger" type="button" data-service="${service.name}">Book this service <span aria-hidden="true">↗</span></button>
+            <button class="text-link book-trigger" type="button" data-service="${service.name}">Book this service <span aria-hidden="true"></span></button>
           </div>
         </div>
       </article>`
@@ -103,9 +103,9 @@ const app = document.querySelector("#app");
 app.innerHTML = `
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="announcement" role="region" aria-label="Booking information">
-    <span class="announcement-dot" aria-hidden="true"></span>
-    <p>Buy now, pay later is available in person <span class="announcement-detail">for bookings from $50–$4,000.</span></p>
-    <a href="#services" class="announcement-link">Explore treatments <span aria-hidden="true">↗</span></a>
+
+    <p>PRIVATE SESSIONS FROM $150 · WORLDWIDE TRAVEL INTENSIVES AVAILABLE</p>
+    <a href="#services" class="announcement-link">Explore treatments <span aria-hidden="true"></span></a>
   </div>
   <header class="site-header">
     <a class="brand" href="#home" aria-label="BODYHEALING home">${brand}<span>BODY<span class="brand-thin">HEALING</span></span></a>
@@ -116,7 +116,7 @@ app.innerHTML = `
       <a href="#about">About</a>
       <a href="#team">Team</a>
       <a href="#contact">Contact</a>
-      <button class="button button-dark nav-book book-trigger" type="button">Book Now <span aria-hidden="true">↗</span></button>
+      <button class="button button-dark nav-book book-trigger" type="button">Book Now <span aria-hidden="true"></span></button>
     </nav>
   </header>
 
@@ -125,25 +125,25 @@ app.innerHTML = `
       <div class="hero-photo" role="img" aria-label="A quiet, restorative massage treatment"></div>
       <div class="hero-shade"></div>
       <div class="hero-inner">
-        <p class="eyebrow hero-kicker"><span class="hero-kicker-line"></span>SCOTTSDALE, ARIZONA</p>
+        <p class="eyebrow hero-kicker"><span class="hero-kicker-line"></span>PRIVATE STUDIO & WORLDWIDE TRAVEL</p>
         <h1 id="hero-title">Come back<br /><em>to yourself.</em></h1>
         <p class="hero-copy">Care that meets you where you are. Thoughtful massage and bodywork, shaped around what your body needs today.</p>
-        <div class="hero-actions"><button class="button button-light book-trigger" type="button">Find your treatment <span aria-hidden="true">↗</span></button><a class="hero-secondary" href="#services">Discover our services <span aria-hidden="true">↓</span></a></div>
+        <div class="hero-actions"><button class="button button-light book-trigger" type="button">Find your treatment <span aria-hidden="true"></span></button><a class="hero-secondary" href="#services">Discover our services <span aria-hidden="true"></span></a></div>
       </div>
       <div class="hero-stamp" aria-hidden="true"><span>BODYWORK</span><span>·</span><span>WELLNESS</span><span>·</span><span>SCOTTSDALE</span></div>
-      <a class="hero-scroll" href="#about"><span>SCROLL TO EXPLORE</span><i></i></a>
+      <a class="hero-scroll" href="#about"><span></span><i></i></a>
     </section>
 
     <section class="intro section-pad" id="about">
       <div class="intro-side" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>BODYWORK, WITH INTENTION</p><div class="intro-image-frame"><img src="/images/e226f59ba341cd01168c64095a59244f.jpg" alt="A calm massage session in a light-filled treatment room" loading="lazy" /><span class="image-note">A softer place to land.</span></div></div>
-      <div class="intro-copy" data-reveal><p class="section-index">01 <span>—</span> A little about us</p><h2>Make room for<br /><em>feeling better.</em></h2><p>Every body arrives with a different story. We take the time to listen, then tailor each session with care—whether you’re looking for relief, a moment to exhale, or a gentler kind of support.</p><p>Our work is grounded in attentive touch, a safe and welcoming space, and respect for what feels right for you.</p><a class="text-link" href="#team">Meet your care team <span aria-hidden="true">↗</span></a></div>
+      <div class="intro-copy" data-reveal><p class="section-index">01 <span>—</span> A little about us</p><h2>Make room for<br /><em>feeling better.</em></h2><p>Every body arrives with a different story. We take the time to listen, then tailor each session with care—whether you’re looking for relief, a moment to exhale, or a gentler kind of support.</p><p>Our work is grounded in attentive touch, a safe and welcoming space, and respect for what feels right for you.</p><a class="text-link" href="#team">Meet your care team <span aria-hidden="true"></span></a></div>
       <div class="intro-asterisk" aria-hidden="true">✳</div>
     </section>
 
     <section class="services-section section-pad" id="services">
       <div class="section-heading" data-reveal><div><p class="eyebrow"><span class="eyebrow-dot"></span>CARE FOR EVERY SEASON</p><h2>Find your kind<br />of <em>rest.</em></h2></div><p class="section-heading-note">A few ways to feel more at home in your body. Each session is personalized to you.</p></div>
       <div class="service-grid">${serviceCards}</div>
-      <div class="services-end" data-reveal><span>YOUR TIME. YOUR BODY. YOUR PACE.</span><button class="button button-outline book-trigger" type="button">Let’s find your fit <span aria-hidden="true">↗</span></button></div>
+      <div class="services-end" data-reveal><span>YOUR TIME. YOUR BODY. YOUR PACE.</span><button class="button button-outline book-trigger" type="button">Let’s find your fit <span aria-hidden="true"></span></button></div>
     </section>
 
     <section class="intensives-section" id="intensives" aria-labelledby="intensives-title">
@@ -161,18 +161,18 @@ app.innerHTML = `
 
     <section class="gentle-feature" aria-labelledby="gentle-title">
       <div class="gentle-image"><img src="/images/db9d2e624bafa4b2fa3c5bd57472a053.png" alt="A client resting as a practitioner gives a gentle face and head massage" loading="lazy" /></div>
-      <div class="gentle-content" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>CARE THAT LISTENS</p><h2 id="gentle-title">A gentle touch.<br /><em>A little more ease.</em></h2><p>For anyone navigating cancer treatment or recovery, the smallest moments of comfort can mean a lot. Oncology massage is adapted with sensitivity to your needs, energy, and boundaries.</p><p>Sessions begin with a thoughtful intake. Touch is gentle and intentional, with your comfort at the center of every moment.</p><button class="button button-light book-trigger" type="button" data-service="Gentle Touch">Learn about Gentle Touch <span aria-hidden="true">↗</span></button></div>
+      <div class="gentle-content" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>CARE THAT LISTENS</p><h2 id="gentle-title">A gentle touch.<br /><em>A little more ease.</em></h2><p>For anyone navigating cancer treatment or recovery, the smallest moments of comfort can mean a lot. Oncology massage is adapted with sensitivity to your needs, energy, and boundaries.</p><p>Sessions begin with a thoughtful intake. Touch is gentle and intentional, with your comfort at the center of every moment.</p><button class="button button-light book-trigger" type="button" data-service="Gentle Touch">Learn about Gentle Touch <span aria-hidden="true"></span></button></div>
     </section>
 
     <section class="team-section section-pad" id="team">
       <div class="team-image" data-reveal><img src="/images/0a9894705789be69895dcabca701a907.png" alt="Hands providing attentive therapeutic massage" loading="lazy" /><span class="team-image-label">A calm, considered approach</span></div>
-      <div class="team-copy" data-reveal><p class="section-index">02 <span>—</span> Meet your team</p><p class="eyebrow"><span class="eyebrow-dot"></span>THOUGHTFUL HANDS, ALWAYS</p><h2>Care that<br /><em>sees the whole you.</em></h2><p>Your therapist brings a thoughtful, individualized approach to every appointment. With specialized certification in oncology massage, they take time to understand your comfort, your history, and what support looks like for you.</p><p>There is no one-size-fits-all session here—only steady, compassionate care at your pace.</p><a class="text-link" href="tel:+16023665298">Let’s talk about what you need <span aria-hidden="true">↗</span></a></div>
+      <div class="team-copy" data-reveal><p class="section-index">02 <span>—</span> Meet your team</p><p class="eyebrow"><span class="eyebrow-dot"></span>THOUGHTFUL HANDS, ALWAYS</p><h2>Care that<br /><em>sees the whole you.</em></h2><p>Your therapist brings a thoughtful, individualized approach to every appointment. With specialized certification in oncology massage, they take time to understand your comfort, your history, and what support looks like for you.</p><p>There is no one-size-fits-all session here—only steady, compassionate care at your pace.</p><a class="text-link" href="tel:+16023665298">Let’s talk about what you need <span aria-hidden="true"></span></a></div>
     </section>
 
     <section class="contact-section" id="contact">
-      <div class="contact-top" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>YOUR SPACE TO RESTORE</p><h2>We’ll meet you<br /><em>where you are.</em></h2><button class="button button-dark book-trigger" type="button">Book a session <span aria-hidden="true">↗</span></button></div>
+      <div class="contact-top" data-reveal><p class="eyebrow"><span class="eyebrow-dot"></span>YOUR SPACE TO RESTORE</p><h2>We’ll meet you<br /><em>where you are.</em></h2><button class="button button-dark book-trigger" type="button">Book a session <span aria-hidden="true"></span></button></div>
       <div class="contact-lower">
-        <div class="contact-location" data-reveal><p class="eyebrow">COME FIND US</p><a class="location-address" href="https://www.google.com/maps/search/?api=1&amp;query=9393%20N%2090th%20St%20%23108B%2C%20Scottsdale%2C%20AZ%2C%2085258" target="_blank" rel="noopener noreferrer">9393 N 90th St #108B<br />Scottsdale, AZ 85258 <span aria-hidden="true">↗</span></a><a class="contact-phone" href="tel:+16023665298">(602) 366-5298</a><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=9393%20N%2090th%20St%20%23108B%2C%20Scottsdale%2C%20AZ%2C%2085258" target="_blank" rel="noopener noreferrer">Get directions <span aria-hidden="true">↗</span></a><a class="instagram-link" href="https://www.instagram.com/bodywork_massage_az" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true">↗</span></a></div>
+        <div class="contact-location" data-reveal><p class="eyebrow">COME FIND US</p><a class="location-address" href="https://www.google.com/maps/search/?api=1&amp;query=9393%20N%2090th%20St%20%23108B%2C%20Scottsdale%2C%20AZ%2C%2085258" target="_blank" rel="noopener noreferrer">9393 N 90th St #108B<br />Scottsdale, AZ 85258 <span aria-hidden="true"></span></a><a class="contact-phone" href="tel:+16023665298">(602) 366-5298</a><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=9393%20N%2090th%20St%20%23108B%2C%20Scottsdale%2C%20AZ%2C%2085258" target="_blank" rel="noopener noreferrer">Get directions <span aria-hidden="true"></span></a><a class="instagram-link" href="https://www.instagram.com/bodywork_massage_az" target="_blank" rel="noopener noreferrer">Instagram <span aria-hidden="true"></span></a></div>
         <div class="hours-panel" data-reveal><p class="eyebrow">HOURS AND LOCATION</p><div class="hours-list">${hours.map(([day, value]) => `<div class="hours-row"><span>${day}</span><span>${value}</span></div>`).join("")}</div></div>
       </div>
     </section>
@@ -202,8 +202,8 @@ app.innerHTML = `
         </div>
         <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
         <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
-        <button class="button button-dark form-submit" id="crypto-pay-start" type="button">Continue to USDT payment <span aria-hidden="true">↗</span></button>
-        <button class="button button-outline form-submit" id="email-inquiry" type="button">Send Email Inquiry <span aria-hidden="true">↗</span></button>
+        <button class="button button-dark form-submit" id="crypto-pay-start" type="button">Continue to USDT payment <span aria-hidden="true"></span></button>
+        <button class="button button-outline form-submit" id="email-inquiry" type="button">Send Email Inquiry <span aria-hidden="true"></span></button>
         <p class="form-disclaimer">Opens a prefilled inquiry to BODYHEALING in your email app.</p>
         <p class="form-feedback" id="form-feedback" aria-live="polite" role="status"></p>
       </form>
@@ -218,7 +218,7 @@ app.innerHTML = `
         <form id="payment-proof-form" enctype="multipart/form-data">
           <label for="payment-txid">Transaction Hash / TXID <span class="optional-label">Optional if you upload a screenshot</span></label><input id="payment-txid" name="txid" type="text" autocomplete="off" maxlength="80" placeholder="0x… (BNB Smart Chain transaction hash)" />
           <label for="payment-screenshot">Payment screenshot <span class="optional-label">Optional if you provide a TXID · JPG / PNG / WEBP · max 5 MB</span></label><input id="payment-screenshot" name="proof" type="file" accept="image/jpeg,image/png,image/webp" /><img id="payment-preview" class="payment-preview" alt="Preview of payment screenshot" hidden />
-          <button class="button button-dark form-submit" type="submit">Submit Payment for Verification <span aria-hidden="true">↗</span></button>
+          <button class="button button-dark form-submit" type="submit">Submit Payment for Verification <span aria-hidden="true"></span></button>
         </form>
         <div id="payment-status" class="payment-status" hidden aria-live="polite"></div>
         <p id="crypto-feedback" class="form-feedback" aria-live="polite" role="status"></p>
