@@ -53,6 +53,24 @@ const intensives = [
   { name: "5 Day On-Site Intensive", price: "$25,000", image: "/images/private-treatment-room.jpg", alt: "A quiet private treatment suite prepared for a multi-day intensive", imageClass: "intensive-photo-four" },
 ];
 
+const sessionVideos = [
+  { title: "Deep Structural Bodywork", treatment: "Myofascial release", src: "/videos/session-1.mp4", poster: "/videos/poster-session-1.jpg", alt: "Practitioner using steady hands-on pressure during a full-body session", service: "Bodywork Massage" },
+  { title: "Fire Cupping & Myofascial Release", treatment: "Cupping and tissue work", src: "/videos/session-2.mp4", poster: "/videos/poster-session-2.jpg", alt: "Practitioner applying glass cups during a bodywork session", service: "Bodywork Massage" },
+  { title: "Restorative Recovery Session", treatment: "Personalized restorative care", src: "/videos/session-3.mp4", poster: "/videos/poster-session-3.jpg", alt: "Practitioner providing a restorative massage session", service: "Bodywork Massage" },
+];
+
+const sessionVideoCards = sessionVideos.map((video, index) => `
+  <article class="practice-card" data-reveal>
+    <div class="practice-video-frame">
+      <video class="practice-video" poster="${video.poster}" preload="metadata" muted loop playsinline aria-label="${video.alt}">
+        <source src="${video.src}" type="video/mp4" />
+      </video>
+      <button class="practice-sound-toggle" type="button" aria-pressed="false" aria-label="Play ${video.title} with sound"><span aria-hidden="true">▶</span><span class="practice-control-label">Play with sound</span></button>
+      <span class="practice-video-index">0${index + 1}</span>
+    </div>
+    <div class="practice-card-copy"><p class="eyebrow">${video.treatment}</p><h3>${video.title}</h3><button class="text-link book-trigger practice-book" type="button" data-service="${video.service}">Book This Treatment <span aria-hidden="true"></span></button></div>
+  </article>`).join("");
+
 const brand = `
   <svg class="brand-mark" viewBox="0 0 38 38" aria-hidden="true" focusable="false">
     <path d="M19 3c-2.2 8.2-6.1 12.2-12.8 13.4 6.7 1.2 10.6 5.2 12.8 13.4 2.2-8.2 6.1-12.2 12.8-13.4C25.1 15.2 21.2 11.2 19 3Z" fill="currentColor"/>
@@ -161,6 +179,11 @@ app.innerHTML = `
     </section>
 
     <section class="gallery-section section-pad" id="selected-work" aria-labelledby="gallery-title"><div class="section-heading"><div><p class="eyebrow">SESSION PHOTOGRAPHS</p><h2 id="gallery-title">Selected work &amp;<br /><em>session gallery</em></h2></div><p class="section-heading-note">A glimpse of the care, settings, and hands-on work we offer.</p></div><div class="gallery-grid"><figure><img src="/images/bodywork-male-back.jpg" alt="Male client receiving therapeutic shoulder and back recovery work" loading="lazy"><figcaption><strong>Deep tissue recovery</strong><span>Focused structural work for active bodies.</span></figcaption></figure><figure><img src="/images/gentle-shoulder-woman.jpg" alt="Female client receiving a restorative shoulder massage" loading="lazy"><figcaption><strong>Restorative bodywork</strong><span>Unhurried care shaped to the person.</span></figcaption></figure><figure><img src="/images/buccal-facial-woman.jpg" alt="A woman receiving facial massage focused on the jaw and cheeks" loading="lazy"><figcaption><strong>Buccal facial sculpting</strong><span>Careful work for jaw and facial tension.</span></figcaption></figure><figure><img src="/images/private-treatment-room.jpg" alt="A calm private treatment room prepared for an on-site intensive" loading="lazy"><figcaption><strong>Private on-site care</strong><span>A considered treatment space, wherever you are.</span></figcaption></figure></div></section>
+
+    <section class="practice-section section-pad" id="in-practice" aria-labelledby="practice-title">
+      <div class="section-heading" data-reveal><div><p class="eyebrow">IN PRACTICE</p><h2 id="practice-title">Session <em>highlights</em></h2></div><p class="section-heading-note">A closer look at the pace, pressure, and attentive touch that shape each session.</p></div>
+      <div class="practice-grid">${sessionVideoCards}</div>
+    </section>
 
     <section class="gentle-feature" aria-labelledby="gentle-title">
       <div class="gentle-image"><img src="/images/gentle-shoulder-woman.jpg" alt="A woman resting as a practitioner gives a gentle shoulder massage" loading="lazy" /></div>
@@ -307,6 +330,32 @@ dialog.addEventListener("close", () => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && dialog.open) dialog.close();
 });
+
+const previewObserver = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    const video = entry.target;
+    if (entry.isIntersecting) video.play().catch(() => {});
+    else { video.pause(); video.muted = true; video.loop = true; video.controls = false; const button = video.parentElement.querySelector(".practice-sound-toggle"); button.setAttribute("aria-pressed", "false"); button.setAttribute("aria-label", `Play ${video.getAttribute("aria-label")} with sound`); button.querySelector(".practice-control-label").textContent = "Play with sound"; }
+  }
+}, { threshold: 0.45 }) : null;
+for (const video of document.querySelectorAll(".practice-video")) {
+  if (previewObserver) previewObserver.observe(video);
+  else video.play().catch(() => {});
+}
+for (const control of document.querySelectorAll(".practice-sound-toggle")) {
+  control.addEventListener("click", async () => {
+    const video = control.parentElement.querySelector(".practice-video");
+    const wantsSound = video.muted;
+    if (wantsSound) { video.muted = false; video.loop = false; video.controls = true; }
+    else { video.muted = true; video.loop = true; video.controls = false; }
+    try {
+      await video.play();
+      control.setAttribute("aria-pressed", String(wantsSound));
+      control.setAttribute("aria-label", wantsSound ? "Mute video" : `Play ${video.getAttribute("aria-label")} with sound`);
+      control.querySelector(".practice-control-label").textContent = wantsSound ? "Mute" : "Play with sound";
+    } catch { video.muted = true; control.setAttribute("aria-pressed", "false"); control.querySelector(".practice-control-label").textContent = "Tap to play"; }
+  });
+}
 
 document.querySelector("#email-inquiry").addEventListener("click", () => {
   const formElement = document.querySelector("#booking-form");

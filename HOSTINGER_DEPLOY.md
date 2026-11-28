@@ -69,3 +69,6 @@ In hPanel, attach `bodyheal.shop` to this Node.js web app and enable/issue SSL b
 - [Environment Variables](https://docs.hostinger.com/node.js/environment-variables) — hPanel entry, saving, and redeployment behavior.
 - [GitHub and GitLab deployments](https://docs.hostinger.com/node.js/git-deployments) — repository connection, auto-deployment, and Redeploy.
 - [Connecting a Domain](https://docs.hostinger.com/getting-started/connecting-a-domain) — use hPanel's site-specific nameservers or the IP shown for that site; DNS propagation and SSL links.
+
+## Session highlight video management
+The “In Practice — Session Highlights” cards are bundled static assets, not uploaded through `/admin`. To change a featured session, replace the matching MP4 and its poster frame under `public/videos/` (`session-1.mp4` through `session-3.mp4`, and `poster-session-1.jpg` through `poster-session-3.jpg`) and update the `sessionVideos` entries in `src/main.js` for title, treatment label, booking service, and asset paths. Keep portrait clips at 9:16 and encode them as browser-compatible H.264 MP4. Run `npm run build` and redeploy the Node.js app; the files are served from `/videos/...` with the website, with no separate media host required.

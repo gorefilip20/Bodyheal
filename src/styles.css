@@ -368,3 +368,26 @@ h1 em, h2 em { font-weight: 400; }
 
 /* Bundled campaign photography: preserve proportions and crop within its frame. */
 .service-photo, .intensive-photo, .intro-image-frame img, .gentle-image img, .team-image img, .gallery-grid img { object-fit: cover; }
+
+/* In Practice: quiet, portrait session films with a responsive swipe row on small screens. */
+.practice-section { background: #f3f1e9; }
+.practice-section .section-heading { margin-bottom: 38px; }
+.practice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.practice-card { min-width: 0; overflow: hidden; border-radius: 5px; background: #fff; box-shadow: 0 10px 34px rgb(34 42 36 / 7%); }
+.practice-video-frame { position: relative; aspect-ratio: 9 / 16; overflow: hidden; background: #252a25; }
+.practice-video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.practice-sound-toggle { position: absolute; z-index: 1; left: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 9px; min-height: 37px; padding: 0 12px; border: 1px solid rgb(255 255 255 / 55%); border-radius: 3px; color: #fff; background: rgb(24 30 25 / 75%); backdrop-filter: blur(8px); font-size: 10px; cursor: pointer; }
+.practice-sound-toggle [aria-hidden="true"] { font-size: 9px; }
+.practice-video-index { position: absolute; top: 13px; left: 13px; display: grid; width: 31px; height: 31px; place-items: center; border-radius: 50%; color: var(--ink); background: rgb(247 245 239 / 92%); font-size: 9px; }
+.practice-card-copy { padding: 21px 20px 22px; }
+.practice-card-copy .eyebrow { margin-bottom: 8px; font-size: 8px; }
+.practice-card-copy h3 { min-height: 2.4em; margin: 0 0 16px; font-family: var(--serif); font-size: clamp(22px, 2.2vw, 29px); font-weight: 400; line-height: 1.15; }
+.practice-book { font-size: 9px; }
+@media (max-width: 700px) {
+  .practice-section { padding: 76px 0 78px; }
+  .practice-section > .section-heading { padding: 0 24px; }
+  .practice-grid { display: flex; gap: 15px; overflow-x: auto; padding: 0 24px 14px; scroll-snap-type: x mandatory; scroll-padding-inline: 24px; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  .practice-card { flex: 0 0 min(76vw, 330px); scroll-snap-align: start; }
+  .practice-card-copy { padding: 18px 17px 20px; }
+  .practice-card-copy h3 { font-size: 25px; }
+}
