@@ -182,7 +182,7 @@ app.innerHTML = `
     <section class="booking-status-section section-pad" id="booking-status" aria-labelledby="booking-status-title">
       <div class="booking-status-grid">
         <article class="active-booking-receipt" id="active-booking-receipt" hidden></article>
-        <div class="booking-status-lookup-panel"><p class="eyebrow">BOOKING SUPPORT</p><h2 id="booking-status-title">Check booking <em>status</em></h2><p>Enter your BODYHEALING Booking ID to see the latest payment review and appointment details.</p><form class="booking-status-lookup"><label for="persistent-booking-id">Booking ID</label><input id="persistent-booking-id" name="bookingRef" required placeholder="BH-A1B2C3D4" autocomplete="off"><button class="button button-dark" type="submit">Check Booking Status</button></form><p id="persistent-booking-status" class="booking-lookup-result" aria-live="polite"></p></div>
+        <div class="booking-status-lookup-panel"><p class="eyebrow">BOOKING SUPPORT</p><h2 id="booking-status-title">Check booking <em>status</em></h2><p>Enter your BODYHEALING Booking ID to see the latest payment review and appointment details.</p><form class="booking-status-lookup"><label for="persistent-booking-id">Booking ID</label><input id="persistent-booking-id" name="bookingRef" required placeholder="BH-A1B2C3D4" autocomplete="off"><label for="persistent-booking-email">Email Address</label><input id="persistent-booking-email" name="email" type="email" required autocomplete="email" placeholder="The email used for booking"><button class="button button-dark" type="submit">Check Booking Status</button></form><p id="persistent-booking-status" class="booking-lookup-result" aria-live="polite"></p></div>
       </div>
     </section>
   </main>
@@ -209,7 +209,8 @@ app.innerHTML = `
           <input id="travel-dates" name="travelDates" type="hidden" disabled />
           <p class="travel-date-hint" id="travel-date-hint" aria-live="polite">Choose a start date and end date.</p>
         </div>
-        <div class="form-row"><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
+        <div class="form-row"><div><label for="guest-email">Email Address</label><input id="guest-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" /></div><div><label for="guest-name">Your name</label><input id="guest-name" name="name" autocomplete="name" required placeholder="First and last name" /></div><div><label for="guest-phone">Phone number</label><input id="guest-phone" name="phone" type="tel" autocomplete="tel" required placeholder="(555) 000-0000" /></div></div>
+        <fieldset class="appointment-picker"><legend>Preferred Date &amp; Time</legend><div class="form-row"><div><label for="appointment-date">Date</label><input id="appointment-date" name="appointmentDate" type="date" required /></div><div><label for="appointment-time">Time</label><input id="appointment-time" name="appointmentTime" type="time" required /></div></div></fieldset>
         <label for="guest-note">Anything you’d like us to know? <span class="optional-label">Optional</span></label><textarea id="guest-note" name="note" rows="3" placeholder="A day or time that works, or anything you’d like to ask…"></textarea>
         <button class="button button-dark form-submit" id="crypto-pay-start" type="button">Continue to USDT payment <span aria-hidden="true"></span></button>
         <button class="button button-outline form-submit" id="email-inquiry" type="button">Send Email Inquiry <span aria-hidden="true"></span></button>
@@ -231,7 +232,7 @@ app.innerHTML = `
         </form>
         <div id="payment-status" class="payment-status" hidden aria-live="polite"></div>
         <p id="crypto-feedback" class="form-feedback" aria-live="polite" role="status"></p>
-        <div class="status-lookup"><h4>Check status by booking ID</h4><form id="booking-lookup-form" class="booking-status-lookup"><label for="lookup-reference">Booking reference</label><input id="lookup-reference" name="bookingRef" required placeholder="BH-A1B2C3D4" /><button class="button button-outline" type="submit">Check Status</button></form><p id="lookup-result" class="booking-lookup-result" aria-live="polite"></p></div>
+        <div class="status-lookup"><h4>Check status by booking ID</h4><form id="booking-lookup-form" class="booking-status-lookup"><label for="lookup-reference">Booking reference</label><input id="lookup-reference" name="bookingRef" required placeholder="BH-A1B2C3D4" /><label for="lookup-email">Email Address</label><input id="lookup-email" name="email" type="email" required autocomplete="email" placeholder="The email used for booking" /><button class="button button-outline" type="submit">Check Status</button></form><p id="lookup-result" class="booking-lookup-result" aria-live="polite"></p></div>
       </section>
       <a class="dialog-call" href="tel:+16023665298">Prefer to call? (602) 366-5298</a>
     </div>
@@ -239,6 +240,18 @@ app.innerHTML = `
 `;
 
 document.querySelector("#year").textContent = new Date().getFullYear();
+const appointmentDate = document.querySelector("#appointment-date");
+const appointmentTime = document.querySelector("#appointment-time");
+const syncAppointmentMinimums = () => {
+  const now = new Date();
+  const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  const today = localNow.toISOString().slice(0, 10);
+  appointmentDate.min = today;
+  appointmentTime.min = appointmentDate.value === today ? localNow.toISOString().slice(11, 16) : "";
+  if (appointmentDate.value && appointmentDate.value < today) appointmentDate.value = "";
+};
+syncAppointmentMinimums();
+appointmentDate.addEventListener("change", syncAppointmentMinimums);
 
 const dialog = document.querySelector("#booking-dialog");
 const serviceChoice = document.querySelector("#service-choice");
@@ -318,6 +331,8 @@ document.querySelector("#email-inquiry").addEventListener("click", () => {
     form.get("travelDates") ? `Preferred Travel Dates: ${form.get("travelDates")}` : "",
     `Name: ${form.get("name")}`,
     `Phone: ${form.get("phone")}`,
+    `Email: ${form.get("email")}`,
+    `Preferred Date & Time: ${form.get("appointmentDate")} ${form.get("appointmentTime")}`,
     form.get("note") ? `Note: ${form.get("note")}` : "",
   ].filter(Boolean).join("\n");
   const subject = `BODYHEALING inquiry — ${form.get("service")}`;

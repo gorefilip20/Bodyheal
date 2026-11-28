@@ -27,6 +27,9 @@ BODYHEAL_ADMIN_DEFAULT_PASSCODE=
 DATABASE_URL=mysql://DB_USER:URL_ENCODED_PASSWORD@DB_HOST:3306/DB_NAME
 CORS_ORIGINS=https://bodyheal.shop
 VITE_BODYHEAL_CONTACT_EMAIL=concierge@bodyheal.shop
+RESEND_API_KEY= # optional
+RESEND_FROM_EMAIL=BODYHEALING <concierge@bodyheal.shop> # optional; sender must be verified in Resend
+BODYHEAL_ADMIN_ALERT_EMAIL= # optional recipient for admin alerts
 ```
 
 `BODYHEAL_ADMIN_PASSCODE` is the primary private passcode and must be at least 16 characters. If absent, the app accepts `BODYHEAL_ADMIN_DEFAULT_PASSCODE` when supplied. If both are absent, first startup creates and persists a cryptographically random fallback under `data/admin-passcode.json`, and prints it once to the Node app startup log so you can sign in and then set `BODYHEAL_ADMIN_PASSCODE` in hPanel. Treat that log value as a secret and set the primary variable promptly. Neither passcode is included in the browser bundle or committed. Do not add a fixed, publicly shared default password.
@@ -37,7 +40,9 @@ If you do not have a reachable MySQL service, you may leave `DATABASE_URL` unset
 
 `VITE_BODYHEAL_CONTACT_EMAIL` is the public recipient used by the prefilled `mailto:` inquiry button. The official public inquiry recipient is `concierge@bodyheal.shop`. Set this value in the Hostinger build environment before building; Vite embeds it in the browser bundle. The address is public and is not a secret.
 
-`CORS_ORIGINS` is a comma-separated exact-origin allowlist for a browser frontend hosted separately from this API. Because this deployment serves both the site and API at `https://bodyheal.shop`, same-origin requests need no CORS exception; the value above is safe for that origin and also makes the intended public origin explicit. Do not use `*` with credentialed admin requests. If the site is also served from `https://www.bodyheal.shop` or another separate origin, add that exact origin, comma-separated, only if it is actually in use. `PORT` is assigned by the Node hosting runtime; the server reads `process.env.PORT` and falls back to `3000` for local/container use, so do not pin a different port in hPanel.
+Customer dashboard access uses Booking ID plus the email saved with the booking; a signed, HTTP-only customer cookie persists portal access for 30 days. Customers set preferred appointment date/time when booking. Reschedule changes are requests requiring admin approval.
+
+Email is optional: without `RESEND_API_KEY`, booking, status lookup, and rescheduling continue normally. To enable confirmations and admin alerts, configure `RESEND_API_KEY`, a verified `RESEND_FROM_EMAIL`, and optionally `BODYHEAL_ADMIN_ALERT_EMAIL`. Notification delivery failures are logged and do not block API workflows. for a browser frontend hosted separately from this API. Because this deployment serves both the site and API at `https://bodyheal.shop`, same-origin requests need no CORS exception; the value above is safe for that origin and also makes the intended public origin explicit. Do not use `*` with credentialed admin requests. If the site is also served from `https://www.bodyheal.shop` or another separate origin, add that exact origin, comma-separated, only if it is actually in use. `PORT` is assigned by the Node hosting runtime; the server reads `process.env.PORT` and falls back to `3000` for local/container use, so do not pin a different port in hPanel.
 
 No `MANUS_API_URL`, `MANUS_API_KEY`, or S3/object-storage variables are required. Screenshot uploads are limited to 5 MB and accepted only as JPG, PNG, or WEBP. The browser sends the image as multipart form data to the relative booking API; Express validates the image signature and saves the original binary in MySQL. The admin dashboard loads a full-size image from `/api/admin/bookings/:ref/proof`; that endpoint requires the signed admin session cookie and sends `Cache-Control: private, no-store`. Since proof images occupy database space, include the database in regular backups.
 

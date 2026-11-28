@@ -33,7 +33,7 @@ export function setupCryptoPayment() {
     try { localStorage.setItem(ACTIVE_BOOKING_KEY, ref); } catch { /* Storage may be unavailable; this session still polls. */ }
     document.querySelectorAll('input[name="bookingRef"]').forEach((input) => { input.value = ref; });
   };
-  const receiptMarkup = (data) => `<p class="payment-status-badge ${data.status === "successful" ? "is-success" : data.status === "needs_review" ? "is-review" : "is-waiting"}">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p><div class="booking-id-banner"><div><span>Official Booking ID</span><strong>${escapeText(data.bookingRef)}</strong></div><button class="button button-outline copy-booking-id" type="button" data-booking-id="${escapeText(data.bookingRef)}">Copy ID</button></div><dl class="payment-status-details"><div><dt>Service / intensive</dt><dd>${escapeText(data.service)}</dd></div><div><dt>Amount</dt><dd>${money(data.amount)} USD / ${money(data.amount)} USDT</dd></div>${data.destination ? `<div><dt>Destination</dt><dd>${escapeText(data.destination)}</dd></div>` : ""}${data.travelDates ? `<div><dt>Travel dates</dt><dd>${escapeText(data.travelDates)}</dd></div>` : ""}<div><dt>Last updated</dt><dd>${escapeText(new Date(data.updatedAt || data.createdAt || Date.now()).toLocaleString())}</dd></div></dl>`;
+  const receiptMarkup = (data) => `<p class="payment-status-badge ${data.status === "successful" ? "is-success" : data.status === "needs_review" ? "is-review" : "is-waiting"}">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p><div class="booking-id-banner"><div><span>Official Booking ID</span><strong>${escapeText(data.bookingRef)}</strong></div><button class="button button-outline copy-booking-id" type="button" data-booking-id="${escapeText(data.bookingRef)}">Copy ID</button></div><dl class="payment-status-details"><div><dt>Service / intensive</dt><dd>${escapeText(data.service)}</dd></div><div><dt>Amount</dt><dd>${money(data.amount)} USD / ${money(data.amount)} USDT</dd></div>${data.destination ? `<div><dt>Destination</dt><dd>${escapeText(data.destination)}</dd></div>` : ""}${data.travelDates ? `<div><dt>Travel dates</dt><dd>${escapeText(data.travelDates)}</dd></div>` : ""}${data.appointmentAt ? `<div><dt>Preferred Date &amp; Time</dt><dd>${escapeText(data.appointmentAt.replace("T", " "))}</dd></div>` : ""}${data.rescheduleStatus === "requested" ? `<div><dt>Reschedule status</dt><dd><span class="client-reschedule-badge">Reschedule Requested</span> · ${escapeText(data.rescheduleRequestedFor?.replace("T", " "))}</dd></div>` : data.rescheduleStatus && data.rescheduleStatus !== "none" ? `<div><dt>Reschedule status</dt><dd>${escapeText(data.rescheduleStatus)}</dd></div>` : ""}<div><dt>Last updated</dt><dd>${escapeText(new Date(data.updatedAt || data.createdAt || Date.now()).toLocaleString())}</dd></div></dl>`;
   const showStatus = (data) => {
     if (data.bookingRef) remember(data.bookingRef);
     const html = data.bookingRef ? receiptMarkup(data) : `<p class="payment-status-badge is-waiting">${escapeText(statusLabels[data.status] || statusLabels.payment_pending)}</p>`;
@@ -41,9 +41,18 @@ export function setupCryptoPayment() {
     statusBox.innerHTML = html;
     statusBox.hidden = false;
     if (localReceipt && data.bookingRef) {
-      localReceipt.innerHTML = `<div class="receipt-heading"><p class="eyebrow">YOUR BOOKING</p><h2>Booking <em>status</em></h2></div>${receiptMarkup(data)}`;
+      localReceipt.innerHTML = `<div class="receipt-heading"><p class="eyebrow">YOUR BOOKING</p><h2>Booking <em>dashboard</em></h2></div>${receiptMarkup(data)}${data.status === "successful" ? (data.rescheduleStatus === "requested" ? `<p class="client-reschedule-badge">Reschedule Requested</p><p>Requested time: ${escapeText(data.rescheduleRequestedFor?.replace("T", " "))}</p>` : `<form class="client-reschedule-form"><h3>Request Reschedule</h3><label>New date<input name="date" type="date" required min="${new Date().toISOString().slice(0,10)}"></label><label>New time<input name="time" type="time" required></label><button class="button button-outline" type="submit">Send Reschedule Request</button><p class="reschedule-feedback" role="status" aria-live="polite"></p></form>`) : ""}`;
       localReceipt.hidden = false;
     }
+    localReceipt?.querySelector(".client-reschedule-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const requested = `${form.elements.date.value}T${form.elements.time.value}`;
+      const feedbackNode = form.querySelector(".reschedule-feedback");
+      const button = form.querySelector("button"); button.disabled = true;
+      try { const updated = await client(`/api/bookings/${encodeURIComponent(data.bookingRef)}/reschedule`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ appointmentAt: requested }) }); showStatus(updated); }
+      catch (error) { feedbackNode.textContent = error.message; button.disabled = false; }
+    });
     for (const button of document.querySelectorAll(".copy-booking-id")) {
       button.onclick = async (event) => { try { await navigator.clipboard.writeText(button.dataset.bookingId); button.textContent = "Copied"; } catch { (statusBox || localReceipt).querySelector(".booking-id-banner strong")?.focus?.(); } };
     }
@@ -64,10 +73,12 @@ export function setupCryptoPayment() {
     clearInterval(pollTimer);
     if (ref) pollTimer = setInterval(() => pollStatus(ref, true), 5000);
   };
+  const formContainingResult = (resultBox) => resultBox?.parentElement?.querySelector(".booking-status-lookup");
   const lookup = async (ref, resultBox) => {
     resultBox.textContent = "Checking status…";
     try {
-      const result = await client(`/api/bookings/${encodeURIComponent(ref)}`);
+      const email = formContainingResult(resultBox)?.querySelector('input[name="email"]')?.value.trim();
+      const result = email ? await client(`/api/bookings/${encodeURIComponent(ref)}/access`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) }) : await client(`/api/bookings/${encodeURIComponent(ref)}`);
       remember(result.bookingRef);
       showStatus(result);
       resultBox.textContent = `${statusLabels[result.status] || result.status} · ${result.bookingRef}`;
@@ -89,7 +100,7 @@ export function setupCryptoPayment() {
       document.querySelector("#form-feedback").textContent = "Please choose a valid service or intensive package.";
       return;
     }
-    booking = { service, amount, name: form.get("name"), phone: form.get("phone"), destination: form.get("destination"), travelDates: form.get("travelDates"), note: form.get("note"), wallet: WALLET, network: "BNB Smart Chain (BEP20)", status: "payment_pending", saved: false };
+    booking = { service, amount, name: form.get("name"), email: form.get("email"), phone: form.get("phone"), appointmentAt: `${form.get("appointmentDate")}T${form.get("appointmentTime")}`, destination: form.get("destination"), travelDates: form.get("travelDates"), note: form.get("note"), wallet: WALLET, network: "BNB Smart Chain (BEP20)", status: "payment_pending", saved: false };
     document.querySelector("#wallet-amount").textContent = `${money(amount)} USD / ${money(amount)} USDT`;
     document.querySelector("#wallet-address").textContent = WALLET;
     document.querySelector("#booking-reference").textContent = "Assigned when payment proof is submitted";
@@ -125,10 +136,11 @@ export function setupCryptoPayment() {
     button.disabled = true; feedback.textContent = "Saving your booking and submitting payment proof…";
     try {
       if (!booking.saved) {
-        const saved = await client("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ service: booking.service, name: booking.name, phone: booking.phone, destination: booking.destination, travelDates: booking.travelDates, note: booking.note }) });
+        const saved = await client("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ service: booking.service, name: booking.name, email: booking.email, phone: booking.phone, appointmentAt: booking.appointmentAt, destination: booking.destination, travelDates: booking.travelDates, note: booking.note }) });
         booking = { ...booking, ...saved, saved: true };
         document.querySelector("#booking-reference").textContent = booking.bookingRef;
       }
+      await client(`/api/bookings/${encodeURIComponent(booking.bookingRef)}/access`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: booking.email }) });
       const result = await client(`/api/bookings/${encodeURIComponent(booking.bookingRef)}/payment`, { method: "POST", body: data });
       remember(result.bookingRef); showStatus(result);
       feedback.textContent = "Proof submitted. Your payment is awaiting manual verification.";
@@ -147,6 +159,8 @@ export function setupCryptoPayment() {
   try {
     const savedRef = localStorage.getItem(ACTIVE_BOOKING_KEY)?.trim().toUpperCase();
     if (savedRef && /^BH-[A-F0-9]{8}$/.test(savedRef)) {
+      const savedEmail = document.querySelector("#persistent-booking-email");
+      if (savedEmail) savedEmail.required = false;
       lookup(savedRef, document.querySelector("#persistent-booking-status"));
     }
   } catch { /* Status lookup remains available by manually entering the booking ID. */ }
